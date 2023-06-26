@@ -237,7 +237,7 @@ class IntuneAppUploader(IntuneUploaderBase):
         current_app_result, current_app_data = self.get_current_app(app_displayname, app_bundleVersion)
 
         # If the ignore_current_app variable is set to true, create the app regardless of whether it already exists
-        if ignore_current_app:
+        if ignore_current_app and app_bundleVersion != current_app_data["primaryBundleVersion"]:
             self.output(f"Creating app {app_data.displayName} version {app_bundleVersion}")
             # Create the app
             self.request = self.makeapirequestPost(f"{self.BASE_ENDPOINT}", self.token, "", data, 201)

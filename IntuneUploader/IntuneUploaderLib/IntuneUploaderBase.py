@@ -138,6 +138,10 @@ class IntuneUploaderBase(Processor):
             while response.status_code == 429:
                 time.sleep(int(response.headers["Retry-After"]))
                 response = requests.post(postEndpoint, headers=headers, data=json_data)
+        elif response.status_code == 412:
+            self.output("Precondition failed, trying again...")
+            time.sleep(10)
+            response = requests.post(postEndpoint, headers=headers, data=json_data)
         else:
             raise ProcessorError("Request failed with ", response.status_code, " - ", response.text)
 

@@ -112,7 +112,7 @@ class IntuneAppUploader(IntuneUploaderBase):
         },
         "assignment_info": {
             "required": False,
-            "description": "The assignment info of the app.",
+            "description": "The assignment info of the app. Provided as an array of dicts containing keys 'group_id' and 'intent'. See https://github.com/almenscorner/intune-uploader/wiki/IntuneAppUploader#input-variables for more information.",
         },
     }
     output_variables = {

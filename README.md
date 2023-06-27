@@ -8,6 +8,7 @@ Moving forward, additional processors for Intune might be added to this project 
 Ideas for future processors:
 - Shell script processor
 - App removal processor
+- Teams notifier processor
 
 For getting started help and documentation, please visit the wiki pages:
 - [Intune App Uploader](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppUploader)

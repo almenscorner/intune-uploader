@@ -131,6 +131,9 @@ class IntuneAppUploader(IntuneUploaderBase):
         "intune_app_changed": {
             "description": "Returns True if the app was updated or created, False if not."
         },
+        "intuneappuploader_summary_result": {
+            "description": "Description of interesting results.",
+        },
     }
 
     def main(self):
@@ -322,18 +325,26 @@ class IntuneAppUploader(IntuneUploaderBase):
         )
 
         # Get the content file upload URL
+        file_content_request_url = f'{self.BASE_ENDPOINT}/{self.request["id"]}/microsoft.graph.macOSLobApp/contentVersions/{self.content_version_request["id"]}/files/{self.content_file_request["id"]}'
         file_content_request = self.makeapirequest(
-            f'{self.BASE_ENDPOINT}/{self.request["id"]}/microsoft.graph.macOSLobApp/contentVersions/{self.content_version_request["id"]}/files/{self.content_file_request["id"]}',
+            file_content_request_url,
             self.token,
         )
 
         self.wait_for_azure_storage_uri()
 
-        # Create the block list
         if not file_content_request["azureStorageUri"]:
-            self.delete_app()
-            raise ProcessorError("Failed to get the Azure Storage upload URL")
-
+            # try again
+            file_content_request = self.makeapirequest(
+                file_content_request_url,
+                self.token,
+            )
+            
+            if not file_content_request["azureStorageUri"]:
+                self.delete_app()
+                raise ProcessorError("Failed to get the Azure Storage upload URL")
+        
+        # Create the block list
         self.create_blocklist(tempfilename, file_content_request["azureStorageUri"])
 
         # Clean up temp file
@@ -367,7 +378,7 @@ class IntuneAppUploader(IntuneUploaderBase):
             self.assign_app(app_data, app_assignment_info)
 
         self.env["intune_app_changed"] = True
-        self.env["intune_upload_summary"] = {
+        self.env["intuneappuploader_summary_result"] = {
             "summary_text": "The following new items were imported into Intune:",
             "report_fields": [
                 "name",
@@ -382,9 +393,6 @@ class IntuneAppUploader(IntuneUploaderBase):
                 "content_version_id": self.content_version_request["id"],
             },
         }
-
-        self.output(f"App {app_displayname} version {app_bundleVersion} uploaded to Intune")
-
 
 if __name__ == "__main__":
     PROCESSOR = IntuneAppUploader()

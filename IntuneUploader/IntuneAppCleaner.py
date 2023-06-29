@@ -10,8 +10,6 @@ Created by Tobias Almén
 import sys 
 import os
 
-from autopkglib import Processor, ProcessorError
-
 __all__ = ["IntuneAppCleaner"]
 
 sys.path.insert(0, os.path.dirname(__file__))

@@ -391,6 +391,20 @@ class IntuneUploaderBase(Processor):
             elif attempt > 20:
                 self.delete_app()
                 raise ProcessorError("Timed out waiting for the Azure Storage upload URL")
+            
+    def get_matching_apps(self, displayname: str) -> list:
+        """Gets a list of apps from Intune that match the specified display name.
+
+        Args:
+            displayname (str): The display name of the app.
+
+        Returns:
+            list: A list of apps that match the specified display name.
+        """
+        params = {"$filter": f"(isof('microsoft.graph.macOSDmgApp') or isof('microsoft.graph.macOSPkgApp')) and displayName eq '{displayname}'", "$expand": "categories"}
+        request = self.makeapirequest(f"{self.BASE_ENDPOINT}", self.token, q_param=params)
+        
+        return request["value"]
 
     def get_current_app(self, displayname: str, version: int) -> tuple:
         """Gets the current app from Intune.
@@ -402,13 +416,14 @@ class IntuneUploaderBase(Processor):
         Returns:
             tuple: The result of the request and the data returned by the request.
         """
-        params = {"$filter": f"displayName eq '{displayname}'", "$expand": "categories"}
-        request = self.makeapirequest(f"{self.BASE_ENDPOINT}", self.token, q_param=params)
+        
+        matching_apps = self.get_matching_apps(displayname)
+        request = [app for app in matching_apps if app["displayName"] == displayname and app["primaryBundleVersion"] == version]
         result = None
         data = {}
 
-        if request["value"]:
-            for item in request["value"]:
+        if request:
+            for item in request:
                 if item["primaryBundleVersion"] < version:
                     result = "update"
                     data = item

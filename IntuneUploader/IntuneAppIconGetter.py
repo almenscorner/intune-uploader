@@ -1,3 +1,13 @@
+#!/usr/local/autopkg/python
+
+"""
+This processor extracts the app icon from a .app or .dmg file and saves it as a .png file.
+This is a very basic processor that uses the sips command to convert the icon to png format.
+For more advanced icon extraction, use the AppIconExtractor processor.
+
+Created by Tobias Almén
+"""
+
 import glob
 import os
 import plistlib
@@ -7,9 +17,7 @@ from autopkglib import DmgMounter
 
 
 class IntuneAppIconGetter(DmgMounter):
-    """Extracts the app icon from a .app or .dmg file and saves it as a .png file.
-    This is a very basic processor that uses the sips command to convert the icon to png format.
-    For more advanced icon extraction, use the AppIconExtractor processor."""
+    """Extracts the app icon from a .app or .dmg file and saves it as a .png file."""
 
     input_variables = {
         "app_file": {

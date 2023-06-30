@@ -6,13 +6,13 @@ This project aims to simplify the process of creating and updating apps and othe
 Moving forward, additional processors for Intune might be added to this project that uploads more data like Shell scripts to provide a complete automated deployment process. This is why the base class [IntuneUploaderBase](IntuneUploader/IntuneUploaderLib/IntuneUploaderBase.py) was created, to allow for easier creation of additional processors. Contributions are welcome!
 
 Ideas for future processors:
-- Shell script processor
 - Teams notifier processor
 
 For getting started help and documentation, please visit the wiki pages:
 - [Intune App Uploader](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppUploader)
 - [Intune App Icon Getter](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppIconGetter)
 - [Intune App Cleaner](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppCleaner)
+- [Intune Script Uploader](https://github.com/almenscorner/intune-uploader/wiki/IntuneScriptUploader)
 
 ### IntuneAppUploader - PKG type apps (not LOB)
 All code in this processor for PKG support is currently made on assumptions of how the API will look like. This means that the code might break if the production API looks different. Once the API is finalized, the code will be updated to reflect the production API.

@@ -199,24 +199,18 @@ class IntuneAppUploader(IntuneUploaderBase):
                 Creates app data based on the app type.
                 """
                 
-                if app_type == "dmg":
-                    self.includedApps = [
+                self.includedApps = [
                         {
                             "@odata.type": "#microsoft.graph.macOSIncludedApp",
                             "bundleId": app_bundleId,
                             "bundleVersion": app_bundleVersion,
                         }
                     ]
+                
+                if app_type == "dmg":
                     self.__dict__["@odata.type"] = "#microsoft.graph.macOSDmgApp"
                     
                 elif app_type == "pkg":
-                    self.childApps = [
-                        {
-                            "@odata.type": "#microsoft.graph.macOSChildApp",
-                            "bundleId": app_bundleId,
-                            "bundleVersion": app_bundleVersion,
-                        }
-                    ]
                     self.__dict__["@odata.type"] = "#microsoft.graph.macOSPkgApp"
                     
                 self.minimumSupportedOperatingSystem = {

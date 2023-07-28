@@ -14,7 +14,5 @@ For getting started help and documentation, please visit the wiki pages:
 - [Intune App Cleaner](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppCleaner)
 - [Intune Script Uploader](https://github.com/almenscorner/intune-uploader/wiki/IntuneScriptUploader)
 
-### IntuneAppUploader - PKG type apps (not LOB)
-All code in this processor for PKG support is currently made on assumptions of how the API will look like. This means that the code might break if the production API looks different. Once the API is finalized, the code will be updated to reflect the production API.
-
-LOB type apps will remain not supported by this processor. This is because LOB apps have limitations which the new PKG type will not have. For example, LOB apps does not support payload free packages, and the package must be signed. This is not the case for PKG type apps.
+### IntuneAppUploader - LOB apps (managed PKG)
+LOB type apps will remain not supported by this processor. This is because LOB apps have limitations which the new PKG type does not have. For example, LOB apps does not support payload free packages, and the package must be signed. This is not the case for PKG type apps.

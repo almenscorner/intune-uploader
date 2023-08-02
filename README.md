@@ -15,4 +15,10 @@ For getting started help and documentation, please visit the wiki pages:
 - [Intune Script Uploader](https://github.com/almenscorner/intune-uploader/wiki/IntuneScriptUploader)
 
 ### IntuneAppUploader - LOB apps (managed PKG)
-LOB type apps will remain not supported by this processor. This is because LOB apps have limitations which the new PKG type does not have. For example, LOB apps does not support payload free packages, and the package must be signed. This is not the case for PKG type apps.
+LOB type apps support has been added. It is required that you provide a pkg file that is signed with a valid Apple Developer ID certificate and notarized. This app type can be deploy apps in a "available" manner rather than "required". This means that the user can choose to install the app or not. This is useful for apps that are not required for the user to do their job, but are nice to have.
+
+In the override file for a signed and notarized pkg, set the following key to upload as a LOB app:
+```xml
+<key>lob_app</key>
+<true/>
+```

@@ -401,12 +401,12 @@ class IntuneUploaderBase(Processor):
         Returns:
             list: A list of apps that match the specified display name.
         """
-        params = {"$filter": f"(isof('microsoft.graph.macOSDmgApp') or isof('microsoft.graph.macOSPkgApp')) and displayName eq '{displayname}'", "$expand": "categories"}
+        params = {"$filter": f"(isof('microsoft.graph.macOSDmgApp') or isof('microsoft.graph.macOSPkgApp') or isof('microsoft.graph.macOSLobApp')) and displayName eq '{displayname}'", "$expand": "categories"}
         request = self.makeapirequest(f"{self.BASE_ENDPOINT}", self.token, q_param=params)
         
         return request["value"]
 
-    def get_current_app(self, displayname: str, version: int) -> tuple:
+    def get_current_app(self, displayname: str, version: int, odata_type: str) -> tuple:
         """Gets the current app from Intune.
 
         Args:
@@ -418,17 +418,20 @@ class IntuneUploaderBase(Processor):
         """
         
         matching_apps = self.get_matching_apps(displayname)
-        request = [app for app in matching_apps if app["displayName"] == displayname and app["primaryBundleVersion"] == version]
+        request = [app for app in matching_apps if app["displayName"] == displayname and app.get("primaryBundleVersion") == version or app.get("buildNumber") == version and app["@odata.type"] == odata_type]
         result = None
         data = {}
 
         if request:
             for item in request:
-                if item["primaryBundleVersion"] < version:
+                item_version = item.get("primaryBundleVersion") if item.get("primaryBundleVersion") else item.get("buildNumber")
+                if item_version < version:
                     result = "update"
+                    item["primaryBundleVersion"] = item_version
                     data = item
                 else:
                     result = "current"
+                    item["primaryBundleVersion"] = item_version
                     data = item
 
         return result, data

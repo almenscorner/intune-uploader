@@ -61,10 +61,12 @@ class IntuneAppCleaner(IntuneUploaderBase):
         # Get macthing apps
         apps = self.get_matching_apps(app_name)
         self.output(f"Found {str(len(apps))} apps matching {app_name}")
-        
+
         if len(apps) == 0:
             return None
         
+        # Get primaryBundleVersion or buildNumber for each app and set it as a key in the app dict
+        apps = list(map(lambda item: {**item, 'primaryBundleVersion': item['buildNumber']} if 'primaryBundleVersion' not in item and 'buildNumber' in item else item, apps))
         # Get a sorted list of apps by version
         apps = sorted(apps, key=lambda app: app["primaryBundleVersion"], reverse=True)
         
@@ -73,7 +75,6 @@ class IntuneAppCleaner(IntuneUploaderBase):
             self.output("App count is greater than keep version count, removing apps.")
             # Remove the apps that should be kept
             apps_to_delete = apps[keep_versions:]
-            
             # Delete the apps that should not be kept
             for app in apps_to_delete:
                 self.output("Deleted app: " + app["displayName"] + " " + app["primaryBundleVersion"])

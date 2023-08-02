@@ -114,6 +114,11 @@ class IntuneAppUploader(IntuneUploaderBase):
             "required": False,
             "description": "The assignment info of the app. Provided as an array of dicts containing keys 'group_id' and 'intent'. See https://github.com/almenscorner/intune-uploader/wiki/IntuneAppUploader#input-variables for more information.",
         },
+        "lob_app": {
+            "required": False,
+            "description": "Bool value whether the app is a line-of-business app or not.",
+            "default": False,
+        },
     }
     output_variables = {
         "name": {
@@ -168,6 +173,7 @@ class IntuneAppUploader(IntuneUploaderBase):
         filename = os.path.basename(self.app_file)
         ignore_current_app = self.env.get("ignore_current_app")
         ignore_current_version = self.env.get("ignore_current_version")
+        lob_app = self.env.get("lob_app")
 
         # Get the access token
         self.token = self.obtain_accesstoken(self.CLIENT_ID, self.CLIENT_SECRET, self.TENANT_ID)
@@ -199,19 +205,36 @@ class IntuneAppUploader(IntuneUploaderBase):
                 Creates app data based on the app type.
                 """
                 
-                self.includedApps = [
+                if not lob_app:
+                    self.includedApps = [
                         {
                             "@odata.type": "#microsoft.graph.macOSIncludedApp",
                             "bundleId": app_bundleId,
                             "bundleVersion": app_bundleVersion,
                         }
                     ]
-                
-                if app_type == "dmg":
-                    self.__dict__["@odata.type"] = "#microsoft.graph.macOSDmgApp"
                     
-                elif app_type == "pkg":
-                    self.__dict__["@odata.type"] = "#microsoft.graph.macOSPkgApp"
+                    if app_type == "dmg":
+                        self.__dict__["@odata.type"] = "#microsoft.graph.macOSDmgApp"
+                        
+                    elif app_type == "pkg":
+                        self.__dict__["@odata.type"] = "#microsoft.graph.macOSPkgApp"
+                
+                else:
+                    self.childApps = [
+                        {
+                            "@odata.type": "#microsoft.graph.macOSLobChildApp",
+                            "bundleId": app_bundleId,
+                            "buildNumber": app_bundleVersion,
+                            "versionNumber": "0.0",
+                        }
+                    ]
+                    
+                    self.__dict__.pop("primaryBundleId")
+                    self.__dict__.pop("primaryBundleVersion")
+                    self.__dict__["bundleId"] = app_bundleId
+                    self.__dict__["buildNumber"] = app_bundleVersion
+                    self.__dict__["@odata.type"] = "#microsoft.graph.macOSLobApp"
                     
                 self.minimumSupportedOperatingSystem = {
                     "@odata.type": "#microsoft.graph.macOSMinimumOperatingSystem",
@@ -231,7 +254,7 @@ class IntuneAppUploader(IntuneUploaderBase):
         # Convert the dictionary to JSON
         data = json.dumps(app_data_dict)
         # Check if app already exists
-        current_app_result, current_app_data = self.get_current_app(app_displayname, app_bundleVersion)
+        current_app_result, current_app_data = self.get_current_app(app_displayname, app_bundleVersion, app_data_dict["@odata.type"])
 
         # If the ignore_current_app variable is set to true, create the app regardless of whether it already exists
         if ignore_current_app and not current_app_data:

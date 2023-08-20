@@ -51,7 +51,7 @@ class IntuneAppPromoter(IntuneUploaderBase):
         self.TENANT_ID = self.env.get("TENANT_ID")
         app_name = self.env.get("display_name")
         app_version = self.env.get("version")
-        app_blacklist_version = self.env.get("blacklist_version")
+        app_blacklist_versions = self.env.get("blacklist_versions")
         promotion_info = self.env.get("promotion_info")
 
         def promote_app(group):
@@ -92,9 +92,9 @@ class IntuneAppPromoter(IntuneUploaderBase):
             current_group_ids = [c["target"].get("groupId") for c in assignments["value"] if c["target"].get("groupId")]
 
             # Check if app version is blacklisted
-            if app_blacklist_version is not None and (
-                intune_app.get("primaryBundleVersion") == app_blacklist_version
-                or intune_app.get("buildNumber") == app_blacklist_version
+            if app_blacklist_versions is not None and (
+                intune_app.get("primaryBundleVersion") in app_blacklist_versions
+                or intune_app.get("buildNumber") in app_blacklist_versions
             ):
                 self.output(f"App version {intune_app.get('primaryBundleVersion')} is blacklisted, skipping version.")
                 continue
@@ -131,7 +131,7 @@ class IntuneAppPromoter(IntuneUploaderBase):
                 "promotions": ", ".join([f"{promotion.get('version')} ({promotion.get('ring')})" for promotion in promotions])
                 if len(promotions) > 0
                 else "",
-                "blacklisted versions": app_blacklist_version if app_blacklist_version is not None else "",
+                "blacklisted versions": ", ".join(app_blacklist_versions) if app_blacklist_versions is not None else "",
             },
         }
 

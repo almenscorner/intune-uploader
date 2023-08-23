@@ -7,13 +7,13 @@ Moving forward, additional processors for Intune might be added to this project 
 
 Ideas for future processors:
 - Teams notifier processor
-- App promoter (development started)
 
 For getting started help and documentation, please visit the wiki pages:
 - [Intune App Uploader](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppUploader)
 - [Intune App Icon Getter](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppIconGetter)
 - [Intune App Cleaner](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppCleaner)
 - [Intune Script Uploader](https://github.com/almenscorner/intune-uploader/wiki/IntuneScriptUploader)
+- [Intune App Promoter](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppPromoter)
 
 ### IntuneAppUploader - LOB apps (managed PKG)
 LOB type apps support has been added. It is required that you provide a pkg file that is signed with a valid Apple Developer ID certificate and notarized. This app type can be deploy apps in a "available" manner rather than "required". This means that the user can choose to install the app or not. This is useful for apps that are not required for the user to do their job, but are nice to have.

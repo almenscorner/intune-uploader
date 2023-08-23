@@ -55,11 +55,25 @@ class IntuneAppPromoter(IntuneUploaderBase):
         promotion_info = self.env.get("promotion_info")
 
         def promote_app(group):
-            notes = {"promotion_date": date.strftime("%Y-%m-%d"), "ring": group.get("ring")}
+            notes = {
+                "promotion_date": date.strftime("%Y-%m-%d"),
+                "ring": group.get("ring"),
+            }
             self.assign_app(app, [group])
             notes["ring"] = group.get("ring")
-            data = json.dumps({"notes": json.dumps(notes), "@odata.type": intune_app.get("@odata.type")})
-            self.makeapirequestPatch(f"{self.BASE_ENDPOINT}/{intune_app.get('id')}", self.token, None, data, 204)
+            data = json.dumps(
+                {
+                    "notes": json.dumps(notes),
+                    "@odata.type": intune_app.get("@odata.type"),
+                }
+            )
+            self.makeapirequestPatch(
+                f"{self.BASE_ENDPOINT}/{intune_app.get('id')}",
+                self.token,
+                None,
+                data,
+                204,
+            )
             promotions.append({"version": app_version, "ring": group.get("ring")})
 
         # Get access token
@@ -82,21 +96,38 @@ class IntuneAppPromoter(IntuneUploaderBase):
         formatted_date_string = datetime.now().strftime("%Y-%m-%d")
         date = datetime.strptime(formatted_date_string, "%Y-%m-%d")
 
+        def match_version(version, blacklist_versions):
+            # Check if version is a wildcard
+            for v in blacklist_versions:
+                if v.endswith("*") and version.startswith(v[:-1]):
+                    return True
+            # Check if version is in blacklist
+            if version in blacklist_versions:
+                return True
+
+            # If no match, return False
+            return False
+
         for intune_app in intune_apps:
             self.request = intune_app
             # Create app object
             app = App(app_name, app_version)
 
             # Get assignments for app
-            assignments = self.makeapirequest(f"{self.BASE_ENDPOINT}/{intune_app.get('id')}/assignments", self.token, None)
+            assignments = self.makeapirequest(
+                f"{self.BASE_ENDPOINT}/{intune_app.get('id')}/assignments",
+                self.token,
+                None,
+            )
             current_group_ids = [c["target"].get("groupId") for c in assignments["value"] if c["target"].get("groupId")]
 
             # Check if app version is blacklisted
+            version = lambda v: v.get("primaryBundleVersion") if v.get("primaryBundleVersion") else v.get("buildNumber")
             if app_blacklist_versions is not None and (
-                intune_app.get("primaryBundleVersion") in app_blacklist_versions
-                or intune_app.get("buildNumber") in app_blacklist_versions
+                match_version(version(intune_app), app_blacklist_versions)
+                or match_version(version(intune_app), app_blacklist_versions)
             ):
-                self.output(f"App version {intune_app.get('primaryBundleVersion')} is blacklisted, skipping version.")
+                self.output(f"App version {version(intune_app)} is blacklisted, skipping version.")
                 continue
             # Get all promotion group ids
             promotion_ids = [group.get("group_id") for group in promotion_info]

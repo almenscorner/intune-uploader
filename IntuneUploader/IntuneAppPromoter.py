@@ -32,13 +32,13 @@ class IntuneAppPromoter(IntuneUploaderBase):
             "required": True,
             "description": "The name of the app to assign.",
         },
-        "blacklist_version": {
+        "blacklist_versions": {
             "required": False,
-            "description": "If the app version is in this list, it will not be assigned.",
+            "description": "If the app version is in this list, it will not be assigned. Can be a wildcard, for example, 5.*",
         },
         "promotion_info": {
             "required": True,
-            "description": "A list of lists containing the assignment info and rings for the app.",
+            "description": "An array of dicts containing information about the assignments and schedule.",
         },
     }
     output_variables = {"intuneapppromoter_summary_result": {"description": "Description of interesting results."}}

@@ -15,9 +15,9 @@ For getting started help and documentation, please visit the wiki pages:
 - [Intune Script Uploader](https://github.com/almenscorner/intune-uploader/wiki/IntuneScriptUploader)
 - [Intune App Promoter](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppPromoter)
 
-<a href="https://macadmins.slack.com/archives/C05EDN7P337">
+Join the discussions on Slack  <a href="https://macadmins.slack.com/archives/C05EDN7P337">
     <img height="25" src="https://cdn4.iconfinder.com/data/icons/logos-and-brands/512/306_Slack_logo-256.png"/>
-</a> Join the discussions on Slack 
+</a>
 
 ### IntuneAppUploader - LOB apps (managed PKG)
 LOB type apps support has been added. It is required that you provide a pkg file that is signed with a valid Apple Developer ID certificate and notarized. This app type can be deploy apps in a "available" manner rather than "required". This means that the user can choose to install the app or not. This is useful for apps that are not required for the user to do their job, but are nice to have.

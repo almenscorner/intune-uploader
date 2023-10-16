@@ -100,6 +100,14 @@ class IntuneAppUploader(IntuneUploaderBase):
             "required": False,
             "description": "Path to the PNG icon of the app.",
         },
+        "preinstall_script": {
+            "required": False,
+            "description": "The base64 encoded preinstall script for the app. Only applicable to unmanaged PKG apps.",
+        },
+        "postinstall_script": {
+            "required": False,
+            "description": "The base64 encoded postinstall script for the app. Only applicable to unmanaged PKG apps.",
+        },
         "ignore_current_app": {
             "required": False,
             "description": "Whether to ignore the current app in Intune and create either way.",
@@ -170,6 +178,8 @@ class IntuneAppUploader(IntuneUploaderBase):
         app_install_as_managed = self.env.get("install_as_managed")
         app_minimum_os_version = self.env.get("minimumSupportedOperatingSystem")
         app_icon = self.env.get("icon")
+        app_preinstall_script = self.env.get("preinstall_script")
+        app_postinstall_script = self.env.get("postinstall_script")
         filename = os.path.basename(self.app_file)
         ignore_current_app = self.env.get("ignore_current_app")
         ignore_current_version = self.env.get("ignore_current_version")
@@ -204,7 +214,7 @@ class IntuneAppUploader(IntuneUploaderBase):
                 """
                 Creates app data based on the app type.
                 """
-                
+
                 if not lob_app:
                     self.includedApps = [
                         {
@@ -213,13 +223,21 @@ class IntuneAppUploader(IntuneUploaderBase):
                             "bundleVersion": app_bundleVersion,
                         }
                     ]
-                    
+
                     if app_type == "dmg":
                         self.__dict__["@odata.type"] = "#microsoft.graph.macOSDmgApp"
-                        
+
                     elif app_type == "pkg":
                         self.__dict__["@odata.type"] = "#microsoft.graph.macOSPkgApp"
-                
+                        if app_preinstall_script:
+                            self.preInstallScript = {
+                                "scriptContent": app_preinstall_script
+                            }
+                        if app_postinstall_script:
+                            self.postInstallScript = {
+                                "scriptContent": app_postinstall_script
+                            }
+
                 else:
                     self.childApps = [
                         {
@@ -229,13 +247,13 @@ class IntuneAppUploader(IntuneUploaderBase):
                             "versionNumber": "0.0",
                         }
                     ]
-                    
+
                     self.__dict__.pop("primaryBundleId")
                     self.__dict__.pop("primaryBundleVersion")
                     self.__dict__["bundleId"] = app_bundleId
                     self.__dict__["buildNumber"] = app_bundleVersion
                     self.__dict__["@odata.type"] = "#microsoft.graph.macOSLobApp"
-                    
+
                 self.minimumSupportedOperatingSystem = {
                     "@odata.type": "#microsoft.graph.macOSMinimumOperatingSystem",
                     app_minimum_os_version: True,
@@ -248,13 +266,14 @@ class IntuneAppUploader(IntuneUploaderBase):
                 "type": "image/png",
                 "value": self.encode_icon(app_icon),
             }
-            
+
         # Get the app data as a dictionary
         app_data_dict = app_data.__dict__
         # Convert the dictionary to JSON
         data = json.dumps(app_data_dict)
         # Check if app already exists
-        current_app_result, current_app_data = self.get_current_app(app_displayname, app_bundleVersion, app_data_dict["@odata.type"])
+        current_app_result, current_app_data = self.get_current_app(app_displayname, app_bundleVersion,
+                                                                    app_data_dict["@odata.type"])
 
         # If the ignore_current_app variable is set to true, create the app regardless of whether it already exists
         if ignore_current_app and not current_app_data:
@@ -271,7 +290,7 @@ class IntuneAppUploader(IntuneUploaderBase):
                 # If the app is not found, raise an error
                 if not current_app_data:
                     raise ProcessorError("App not found in Intune. Please set ignore_current_version to false.")
-                
+
                 # If the app version is the same, update the file contents
                 if current_app_data["primaryBundleVersion"] == app_bundleVersion:
                     self.output(
@@ -286,22 +305,22 @@ class IntuneAppUploader(IntuneUploaderBase):
                 self.content_update = True
                 self.makeapirequestPatch(f'{self.BASE_ENDPOINT}/{current_app_data["id"]}', self.token, "", data, 204)
                 self.request = current_app_data
-                
+
             # If the app is up to date and the current version should not be ignored
             if current_app_result == "current" and ignore_current_version is False:
                 self.output(
                     f'App {current_app_data["displayName"]} version {current_app_data["primaryBundleVersion"]} is up to date'
                 )
                 return
-                
+
             # If the app does not exist
             if current_app_result is None:
                 self.output(f"Creating app {app_data.displayName} version {app_data.primaryBundleVersion}")
                 # Create the app
                 self.request = self.makeapirequestPost(f"{self.BASE_ENDPOINT}", self.token, "", data, 201)
-        
+
         # Create the content version
-        content_version_url = f'{self.BASE_ENDPOINT}/{self.request["id"]}/{str(app_data_dict["@odata.type"]).replace("#","")}/contentVersions'
+        content_version_url = f'{self.BASE_ENDPOINT}/{self.request["id"]}/{str(app_data_dict["@odata.type"]).replace("#", "")}/contentVersions'
         self.content_version_request = self.makeapirequestPost(
             content_version_url,
             self.token,
@@ -358,11 +377,11 @@ class IntuneAppUploader(IntuneUploaderBase):
                 file_content_request_url,
                 self.token,
             )
-            
+
             if not file_content_request["azureStorageUri"]:
                 self.delete_app()
                 raise ProcessorError("Failed to get the Azure Storage upload URL")
-        
+
         # Create the block list
         self.create_blocklist(tempfilename, file_content_request["azureStorageUri"])
 
@@ -389,10 +408,10 @@ class IntuneAppUploader(IntuneUploaderBase):
         }
 
         self.makeapirequestPatch(f"{self.BASE_ENDPOINT}/{self.request['id']}", self.token, "", json.dumps(data), 204)
-        
+
         if app_categories:
             self.update_categories(app_categories, self.request.get("categories"))
-        
+
         if app_assignment_info:
             self.assign_app(app_data, app_assignment_info)
 
@@ -412,6 +431,7 @@ class IntuneAppUploader(IntuneUploaderBase):
                 "content_version_id": self.content_version_request["id"],
             },
         }
+
 
 if __name__ == "__main__":
     PROCESSOR = IntuneAppUploader()

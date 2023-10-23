@@ -1,4 +1,5 @@
 #!/usr/local/autopkg/python
+# -*- coding: utf-8 -*-
 
 """
 This processor uploads an app to Microsoft Intune using the Microsoft Graph API, it also assigns the app to group(s) if specified
@@ -9,12 +10,12 @@ It is heavily inspired by the IntuneImporter processor by @SteveKueng.
 Created by Tobias Almén
 """
 
-import sys
-import tempfile
 import json
 import os
-
+import sys
+import tempfile
 from dataclasses import dataclass, field
+
 from autopkglib import ProcessorError
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -24,6 +25,8 @@ __all__ = ["IntuneAppUploader"]
 
 
 class IntuneAppUploader(IntuneUploaderBase):
+    """IntuneApp Uploader processor"""
+
     description = __doc__
     input_variables = {
         "CLIENT_ID": {
@@ -64,7 +67,7 @@ class IntuneAppUploader(IntuneUploaderBase):
         },
         "categories": {
             "required": False,
-            "description": "An array of categories to add to the app by name. Must be created in Intune first"
+            "description": "An array of categories to add to the app by name. Must be created in Intune first",
         },
         "information_url": {
             "required": False,
@@ -129,9 +132,7 @@ class IntuneAppUploader(IntuneUploaderBase):
         },
     }
     output_variables = {
-        "name": {
-            "description": "The name of the app that was uploaded."
-        },
+        "name": {"description": "The name of the app that was uploaded."},
         "version": {
             "description": "The version of the app that was uploaded or updated."
         },
@@ -150,8 +151,11 @@ class IntuneAppUploader(IntuneUploaderBase):
     }
 
     def main(self):
+        """Main process."""
         # Set up variables
-        self.BASE_ENDPOINT = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps"
+        self.BASE_ENDPOINT = (
+            "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps"
+        )
         self.CLIENT_ID = self.env.get("CLIENT_ID")
         self.CLIENT_SECRET = self.env.get("CLIENT_SECRET")
         self.TENANT_ID = self.env.get("TENANT_ID")
@@ -186,7 +190,9 @@ class IntuneAppUploader(IntuneUploaderBase):
         lob_app = self.env.get("lob_app")
 
         # Get the access token
-        self.token = self.obtain_accesstoken(self.CLIENT_ID, self.CLIENT_SECRET, self.TENANT_ID)
+        self.token = self.obtain_accesstoken(
+            self.CLIENT_ID, self.CLIENT_SECRET, self.TENANT_ID
+        )
 
         @dataclass
         class App:
@@ -272,16 +278,26 @@ class IntuneAppUploader(IntuneUploaderBase):
         # Convert the dictionary to JSON
         data = json.dumps(app_data_dict)
         # Check if app already exists
-        current_app_result, current_app_data = self.get_current_app(app_displayname, app_bundleVersion,
-                                                                    app_data_dict["@odata.type"])
+        current_app_result, current_app_data = self.get_current_app(
+            app_displayname, app_bundleVersion, app_data_dict["@odata.type"]
+        )
 
         # If the ignore_current_app variable is set to true, create the app regardless of whether it already exists
         if ignore_current_app and not current_app_data:
-            raise ProcessorError("App not found in Intune. Please set ignore_current_app to false.")
-        if ignore_current_app and app_bundleVersion != current_app_data["primaryBundleVersion"]:
-            self.output(f"Creating app {app_data.displayName} version {app_bundleVersion}")
+            raise ProcessorError(
+                "App not found in Intune. Please set ignore_current_app to false."
+            )
+        if (
+            ignore_current_app
+            and app_bundleVersion != current_app_data["primaryBundleVersion"]
+        ):
+            self.output(
+                f"Creating app {app_data.displayName} version {app_bundleVersion}"
+            )
             # Create the app
-            self.request = self.makeapirequestPost(f"{self.BASE_ENDPOINT}", self.token, "", data, 201)
+            self.request = self.makeapirequestPost(
+                f"{self.BASE_ENDPOINT}", self.token, "", data, 201
+            )
 
         # If the ignore_current_app variable is not set to true, check if the app already exists and update it if necessary
         else:
@@ -289,7 +305,9 @@ class IntuneAppUploader(IntuneUploaderBase):
             if current_app_result == "update" or ignore_current_version is True:
                 # If the app is not found, raise an error
                 if not current_app_data:
-                    raise ProcessorError("App not found in Intune. Please set ignore_current_version to false.")
+                    raise ProcessorError(
+                        "App not found in Intune. Please set ignore_current_version to false."
+                    )
 
                 # If the app version is the same, update the file contents
                 if current_app_data["primaryBundleVersion"] == app_bundleVersion:
@@ -303,7 +321,13 @@ class IntuneAppUploader(IntuneUploaderBase):
                     )
                 # Update the app
                 self.content_update = True
-                self.makeapirequestPatch(f'{self.BASE_ENDPOINT}/{current_app_data["id"]}', self.token, "", data, 204)
+                self.makeapirequestPatch(
+                    f'{self.BASE_ENDPOINT}/{current_app_data["id"]}',
+                    self.token,
+                    "",
+                    data,
+                    204,
+                )
                 self.request = current_app_data
 
             # If the app is up to date and the current version should not be ignored
@@ -315,9 +339,13 @@ class IntuneAppUploader(IntuneUploaderBase):
 
             # If the app does not exist
             if current_app_result is None:
-                self.output(f"Creating app {app_data.displayName} version {app_data.primaryBundleVersion}")
+                self.output(
+                    f"Creating app {app_data.displayName} version {app_data.primaryBundleVersion}"
+                )
                 # Create the app
-                self.request = self.makeapirequestPost(f"{self.BASE_ENDPOINT}", self.token, "", data, 201)
+                self.request = self.makeapirequestPost(
+                    f"{self.BASE_ENDPOINT}", self.token, "", data, 201
+                )
 
         # Create the content version
         content_version_url = f'{self.BASE_ENDPOINT}/{self.request["id"]}/{str(app_data_dict["@odata.type"]).replace("#", "")}/contentVersions'
@@ -407,7 +435,13 @@ class IntuneAppUploader(IntuneUploaderBase):
             "committedContentVersion": self.content_version_request["id"],
         }
 
-        self.makeapirequestPatch(f"{self.BASE_ENDPOINT}/{self.request['id']}", self.token, "", json.dumps(data), 204)
+        self.makeapirequestPatch(
+            f"{self.BASE_ENDPOINT}/{self.request['id']}",
+            self.token,
+            "",
+            json.dumps(data),
+            204,
+        )
 
         if app_categories:
             self.update_categories(app_categories, self.request.get("categories"))

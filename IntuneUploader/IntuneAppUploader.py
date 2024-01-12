@@ -96,6 +96,11 @@ class IntuneAppUploader(IntuneUploaderBase):
             "description": "Whether to install the app as managed or not.",
             "default": False,
         },
+        "ignore_version_detection": {
+            "required": False,
+            "description": "Whether Intune will ignore the version in the detection of the installed application.",
+            "default": False,
+        },
         "icon": {
             "required": False,
             "description": "Path to the PNG icon of the app.",
@@ -176,6 +181,7 @@ class IntuneAppUploader(IntuneUploaderBase):
         app_type = os.path.splitext(self.app_file)[1][1:]
         app_assignment_info = self.env.get("assignment_info")
         app_install_as_managed = self.env.get("install_as_managed")
+        app_ignore_version_detection = self.env.get("ignore_version_detection")
         app_minimum_os_version = self.env.get("minimumSupportedOperatingSystem")
         app_icon = self.env.get("icon")
         app_preinstall_script = self.env.get("preinstall_script")
@@ -205,7 +211,7 @@ class IntuneAppUploader(IntuneUploaderBase):
             informationUrl: str = app_information_url
             primaryBundleId: str = app_bundleId
             primaryBundleVersion: str = app_bundleVersion
-            ignoreVersionDetection: bool = False
+            ignoreVersionDetection: bool = app_ignore_version_detection
             installAsManaged: bool = app_install_as_managed
             minimumSupportedOperatingSystem: dict = field(default_factory=dict)
             largeIcon: dict = field(default_factory=dict, init=False)

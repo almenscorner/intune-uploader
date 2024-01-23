@@ -519,7 +519,7 @@ class IntuneUploaderBase(Processor):
                     }
                 )
 
-            self.output(f"Updating assigningments for app {app.displayName} version {app.primaryBundleVersion}")
+            self.output(f"Updating assignments for app {app.displayName} version {app.primaryBundleVersion}")
             self.makeapirequestPost(f"{self.BASE_ENDPOINT}/{self.request['id']}/assign", self.token, "", json.dumps(data), 200)
         
 if __name__ == "__main__":

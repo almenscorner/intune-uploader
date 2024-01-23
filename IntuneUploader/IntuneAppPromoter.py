@@ -1,4 +1,5 @@
 #!/usr/local/autopkg/python
+# -*- coding: utf-8 -*-
 
 """
 This processor promotes apps in Intune based on the input variables. It will promote the app to the first group in the promotion_info list.
@@ -7,9 +8,9 @@ If the app has been promoted before, it will promote the app to the next group i
 Created by Tobias Almén
 """
 
-import sys
-import os
 import json
+import os
+import sys
 from datetime import datetime
 
 __all__ = ["IntuneAppPromoter"]
@@ -19,13 +20,16 @@ from IntuneUploaderLib.IntuneUploaderBase import IntuneUploaderBase
 
 
 class App:
+    """App class"""
+
     def __init__(self, app_name, app_version):
         self.displayName = app_name
         self.primaryBundleVersion = app_version
 
 
 class IntuneAppPromoter(IntuneUploaderBase):
-    "This processor promotes an app to groups in Intune based on the input variables."
+    """This processor promotes an app to groups in Intune based on the input variables."""
+
     description = __doc__
     input_variables = {
         "display_name": {
@@ -41,11 +45,18 @@ class IntuneAppPromoter(IntuneUploaderBase):
             "description": "An array of dicts containing information about the assignments and schedule.",
         },
     }
-    output_variables = {"intuneapppromoter_summary_result": {"description": "Description of interesting results."}}
+    output_variables = {
+        "intuneapppromoter_summary_result": {
+            "description": "Description of interesting results."
+        }
+    }
 
     def main(self):
+        """Main process"""
         # Set variables
-        self.BASE_ENDPOINT = "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps"
+        self.BASE_ENDPOINT = (
+            "https://graph.microsoft.com/beta/deviceAppManagement/mobileApps"
+        )
         self.CLIENT_ID = self.env.get("CLIENT_ID")
         self.CLIENT_SECRET = self.env.get("CLIENT_SECRET")
         self.TENANT_ID = self.env.get("TENANT_ID")
@@ -77,10 +88,12 @@ class IntuneAppPromoter(IntuneUploaderBase):
             promotions.append({"version": app_version, "ring": group.get("ring")})
 
         # Get access token
-        self.token = self.obtain_accesstoken(self.CLIENT_ID, self.CLIENT_SECRET, self.TENANT_ID)
+        self.token = self.obtain_accesstoken(
+            self.CLIENT_ID, self.CLIENT_SECRET, self.TENANT_ID
+        )
 
         # Check if promotion info is set
-        if promotion_info == None:
+        if not promotion_info:
             self.output("No promotion info found, exiting.")
             return None
 
@@ -89,7 +102,7 @@ class IntuneAppPromoter(IntuneUploaderBase):
         # Get matching apps
         intune_apps = self.get_matching_apps(app_name)
         # If no apps are found, exit
-        if intune_apps == None:
+        if not intune_apps:
             self.output(f"No app found with name: {app_name}, exiting.")
             return None
 
@@ -119,21 +132,33 @@ class IntuneAppPromoter(IntuneUploaderBase):
                 self.token,
                 None,
             )
-            current_group_ids = [c["target"].get("groupId") for c in assignments["value"] if c["target"].get("groupId")]
+            current_group_ids = [
+                c["target"].get("groupId")
+                for c in assignments["value"]
+                if c["target"].get("groupId")
+            ]
 
             # Check if app version is blacklisted
-            version = lambda v: v.get("primaryBundleVersion") if v.get("primaryBundleVersion") else v.get("buildNumber")
+            version = (
+                lambda v: v.get("primaryBundleVersion")
+                if v.get("primaryBundleVersion")
+                else v.get("buildNumber")
+            )
             if app_blacklist_versions is not None and (
                 match_version(version(intune_app), app_blacklist_versions)
                 or match_version(version(intune_app), app_blacklist_versions)
             ):
-                self.output(f"App version {version(intune_app)} is blacklisted, skipping version.")
+                self.output(
+                    f"App version {version(intune_app)} is blacklisted, skipping version."
+                )
                 continue
             # Get all promotion group ids
             promotion_ids = [group.get("group_id") for group in promotion_info]
             # If all promotion group ids are in current group ids, exits
             if all(id in current_group_ids for id in promotion_ids):
-                self.output(f"{intune_app.get('displayName')} {app_version} is already assigned to all groups, skipping.")
+                self.output(
+                    f"{intune_app.get('displayName')} {app_version} is already assigned to all groups, skipping."
+                )
                 return None
 
             # If app has not been promoted before, assign to first group in promotion_info
@@ -146,11 +171,20 @@ class IntuneAppPromoter(IntuneUploaderBase):
                 promote_date = notes_data.get("promotion_date")
                 delta = (date - datetime.strptime(promote_date, "%Y-%m-%d")).days
                 previous_ring = notes_data.get("ring")
-                previous_ring_days = sum([group.get("days") for group in promotion_info if group.get("ring") == previous_ring])
+                previous_ring_days = sum(
+                    [
+                        group.get("days")
+                        for group in promotion_info
+                        if group.get("ring") == previous_ring
+                    ]
+                )
 
                 for group in promotion_info:
                     # If the delta is greater than or equal to the previous ring days, promote
-                    if group.get("group_id") not in current_group_ids and delta >= previous_ring_days:
+                    if (
+                        group.get("group_id") not in current_group_ids
+                        and delta >= previous_ring_days
+                    ):
                         promote_app(group)
                         break
 
@@ -159,10 +193,17 @@ class IntuneAppPromoter(IntuneUploaderBase):
             "report_fields": ["app name", "promotions", "blacklisted versions"],
             "data": {
                 "app name": app_name,
-                "promotions": ", ".join([f"{promotion.get('version')} ({promotion.get('ring')})" for promotion in promotions])
+                "promotions": ", ".join(
+                    [
+                        f"{promotion.get('version')} ({promotion.get('ring')})"
+                        for promotion in promotions
+                    ]
+                )
                 if len(promotions) > 0
                 else "",
-                "blacklisted versions": ", ".join(app_blacklist_versions) if app_blacklist_versions is not None else "",
+                "blacklisted versions": ", ".join(app_blacklist_versions)
+                if app_blacklist_versions is not None
+                else "",
             },
         }
 

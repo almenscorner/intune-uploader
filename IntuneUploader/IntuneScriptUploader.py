@@ -1,4 +1,5 @@
 #!/usr/local/autopkg/python
+# -*- coding: utf-8 -*-
 
 """
 This processor uploads a script to Microsoft Intune using the Microsoft Graph API, it also assigns the script to group(s) if specified
@@ -7,13 +8,13 @@ It also supports updating the script if it already exists in Intune.
 Created by Tobias Almén
 """
 
-import sys
-import os
 import base64
 import json
+import os
+import sys
+from dataclasses import dataclass, field
 
 from autopkglib import ProcessorError
-from dataclasses import dataclass, field
 
 __all__ = ["IntuneScriptUploader"]
 
@@ -58,38 +59,51 @@ class IntuneScriptUploader(IntuneUploaderBase):
         },
     }
     output_variables = {
-        "intunescriptuploader_summary_result": {"description": "Description of interesting results."}
+        "intunescriptuploader_summary_result": {
+            "description": "Description of interesting results."
+        }
     }
-    
+
     def main(self):
-        
+        """Main process"""
+
         def assign_script(self, script_id: str, assignment_info: dict) -> None:
             """Assigns a script to groups.
-            
+
             Args:
                 script_id (str): The id of the script.
                 assignment_info (dict): The assignment information.
             """
-            assignment_endpoint = self.BASE_ENDPOINT.replace("deviceShellScripts", "deviceManagementScripts")
-            current_assignment = self.makeapirequest(f"{assignment_endpoint}/{script_id}/assignments", self.token)
+            assignment_endpoint = self.BASE_ENDPOINT.replace(
+                "deviceShellScripts", "deviceManagementScripts"
+            )
+            current_assignment = self.makeapirequest(
+                f"{assignment_endpoint}/{script_id}/assignments", self.token
+            )
             # Get the current group ids
-            current_group_ids = [c["target"].get("groupId") for c in current_assignment["value"] if c["target"].get("groupId")]
+            current_group_ids = [
+                c["target"].get("groupId")
+                for c in current_assignment["value"]
+                if c["target"].get("groupId")
+            ]
             # Check if the group id is not in the current assignments
-            missing_assignment = [a for a in assignment_info if a["group_id"] not in current_group_ids]
+            missing_assignment = [
+                a for a in assignment_info if a["group_id"] not in current_group_ids
+            ]
             data = {"deviceManagementScriptAssignments": []}
 
             if missing_assignment:
                 for assignment in missing_assignment:
                     if assignment["intent"] == "exclude":
-                        type = "#microsoft.graph.exclusionGroupAssignmentTarget"
+                        atype = "#microsoft.graph.exclusionGroupAssignmentTarget"
                     else:
-                        type = "#microsoft.graph.groupAssignmentTarget"
-                        
+                        atype = "#microsoft.graph.groupAssignmentTarget"
+
                     # Assign the script to the group
                     data["deviceManagementScriptAssignments"].append(
                         {
                             "target": {
-                                "@odata.type": type,
+                                "@odata.type": atype,
                                 "groupId": assignment["group_id"],
                             },
                         }
@@ -101,11 +115,19 @@ class IntuneScriptUploader(IntuneUploaderBase):
                             "target": assignment["target"],
                         }
                     )
-                    
-                self.makeapirequestPost(f"{assignment_endpoint}/{script_id}/assign", self.token, "", json.dumps(data), 200)
-                    
+
+                self.makeapirequestPost(
+                    f"{assignment_endpoint}/{script_id}/assign",
+                    self.token,
+                    "",
+                    json.dumps(data),
+                    200,
+                )
+
         # Set variables
-        self.BASE_ENDPOINT = "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts"
+        self.BASE_ENDPOINT = (
+            "https://graph.microsoft.com/beta/deviceManagement/deviceShellScripts"
+        )
         self.CLIENT_ID = self.env.get("CLIENT_ID")
         self.CLIENT_SECRET = self.env.get("CLIENT_SECRET")
         self.TENANT_ID = self.env.get("TENANT_ID")
@@ -118,7 +140,7 @@ class IntuneScriptUploader(IntuneUploaderBase):
         assignment_info = self.env.get("assignment_info")
         filename = os.path.basename(script_path)
         action = ""
-        
+
         # Check if script name is provided
         if not script_name:
             # If not, use filename
@@ -130,16 +152,18 @@ class IntuneScriptUploader(IntuneUploaderBase):
                 raise ProcessorError(f"Path is a directory: {script_path}")
         else:
             raise ProcessorError(f"Path does not exist: {script_path}")
-        
+
         # Get token
-        self.token = self.obtain_accesstoken(self.CLIENT_ID, self.CLIENT_SECRET, self.TENANT_ID)
-        
+        self.token = self.obtain_accesstoken(
+            self.CLIENT_ID, self.CLIENT_SECRET, self.TENANT_ID
+        )
+
         @dataclass
         class ShellScript:
             """
             Class to represent a shell script.
             """
-            
+
             displayName: str = script_name
             description: str = script_description
             scriptContent: str = field(default_factory=str)
@@ -147,46 +171,60 @@ class IntuneScriptUploader(IntuneUploaderBase):
             runAsAccount: str = run_as_account
             blockExecutionNotifications: bool = block_execution_notifications
             fileName: str = filename
-        
+
         # Create script object
         script = ShellScript()
-        
-        with open(script_path, "r") as f:
+
+        with open(script_path, "r", encoding="utf-8") as f:
             # Encode script content as base64
-            script.scriptContent = base64.b64encode(f.read().encode("utf-8")).decode("utf-8")
-        
+            script.scriptContent = base64.b64encode(f.read().encode("utf-8")).decode(
+                "utf-8"
+            )
+
         # Convert script object to json
         script_data = json.dumps(script.__dict__)
-        
+
         # Check if script exists in Intune
         params = {"$filter": f"displayName eq '{script_name}'"}
         current_script = self.makeapirequest(self.BASE_ENDPOINT, self.token, params)
-        
+
         if current_script["value"]:
             # Get script content
-            current_script_content = self.makeapirequest(f"{self.BASE_ENDPOINT}/{current_script['value'][0]['id']}", self.token)
+            current_script_content = self.makeapirequest(
+                f"{self.BASE_ENDPOINT}/{current_script['value'][0]['id']}", self.token
+            )
             # Check if script matches current script
             if current_script_content["scriptContent"] == script.scriptContent:
-                self.output(f"Script '{script_name}' already exists and matches current script.")
+                self.output(
+                    f"Script '{script_name}' already exists and matches current script."
+                )
                 action = "none"
             else:
-                self.output(f"Script '{script_name}' already exists but does not match current script. Updating script.")
+                self.output(
+                    f"Script '{script_name}' already exists but does not match current script. Updating script."
+                )
                 action = "update"
-                self.makeapirequestPatch(f"{self.BASE_ENDPOINT}('{current_script_content['id']}')", self.token, "", script_data)
-                
+                self.makeapirequestPatch(
+                    f"{self.BASE_ENDPOINT}('{current_script_content['id']}')",
+                    self.token,
+                    "",
+                    script_data,
+                )
+
         else:
             self.output(f"Script '{script_name}' does not exist. Creating script.")
             action = "create"
-            create_request = self.makeapirequestPost(self.BASE_ENDPOINT, self.token, None, script_data, 201)
-            
-        
+            create_request = self.makeapirequestPost(
+                self.BASE_ENDPOINT, self.token, None, script_data, 201
+            )
+
         if assignment_info and action != "none":
             # Assign script to groups
             if action == "create":
                 script_id = create_request["id"]
             else:
                 script_id = current_script["value"][0]["id"]
-                
+
             assign_script(self, script_id, assignment_info)
 
         self.env["intunescriptuploader_summary_result"] = {
@@ -208,6 +246,7 @@ class IntuneScriptUploader(IntuneUploaderBase):
                 "action": action,
             },
         }
+
 
 if __name__ == "__main__":
     PROCESSOR = IntuneScriptUploader()

@@ -1,4 +1,5 @@
 #!/usr/local/autopkg/python
+# -*- coding: utf-8 -*-
 
 """
 IntuneAppUploaderBase is a base class for processors that upload apps among other things to Microsoft Intune using the Microsoft Graph API.
@@ -6,20 +7,25 @@ IntuneAppUploaderBase is a base class for processors that upload apps among othe
 Created by Tobias Almén
 """
 
-import requests
-import time
+import base64
+import hashlib
+import hmac
 import json
 import os
-import hashlib
-import base64
-import hmac
+import time
 
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import padding
+import requests
 from autopkglib import Processor, ProcessorError
+from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
 
 class IntuneUploaderBase(Processor):
-    def obtain_accesstoken(self, client_id: str, client_secret: str, tenant_id: str) -> dict:
+    """IntuneUploaderBase processor"""
+
+    def obtain_accesstoken(
+        self, client_id: str, client_secret: str, tenant_id: str
+    ) -> dict:
         """This function obtains an access token from the Microsoft Graph API.
 
         Args:
@@ -42,11 +48,12 @@ class IntuneUploaderBase(Processor):
 
         response = requests.post(url, headers=headers, data=data)
 
-        if response.status_code == 200:
-            response = json.loads(response.text)
-            return response
-        else:
-            raise ProcessorError(f"Failed to obtain access token. Status code: {response.status_code}")
+        if response.status_code != 200:
+            raise ProcessorError(
+                f"Failed to obtain access token. Status code: {response.status_code}"
+            )
+        response = json.loads(response.text)
+        return response
 
     def makeapirequest(self, endpoint: str, token: dict, q_param=None) -> dict:
         """This function makes a request to the Graph API and returns the response as a dictionary.
@@ -68,43 +75,58 @@ class IntuneUploaderBase(Processor):
         if q_param is not None:
             response = requests.get(endpoint, headers=headers, params=q_param)
             if response.status_code in retry_response_codes:
-                self.output("Ran into issues with Graph request, waiting 10 seconds and trying again...")
+                self.output(
+                    "Ran into issues with Graph request, waiting 10 seconds and trying again..."
+                )
                 time.sleep(10)
                 response = requests.get(endpoint, headers=headers)
             elif response.status_code == 429:
-                self.output(f"Hit Graph throttling, trying again after {response.headers['Retry-After']} seconds")
+                self.output(
+                    f"Hit Graph throttling, trying again after {response.headers['Retry-After']} seconds"
+                )
                 while response.status_code == 429:
                     time.sleep(int(response.headers["Retry-After"]))
                     response = requests.get(endpoint, headers=headers)
         else:
             response = requests.get(endpoint, headers=headers)
             if response.status_code in retry_response_codes:
-                self.output("Ran into issues with Graph request, waiting 10 seconds and trying again...")
+                self.output(
+                    "Ran into issues with Graph request, waiting 10 seconds and trying again..."
+                )
                 time.sleep(10)
                 response = requests.get(endpoint, headers=headers)
             elif response.status_code == 429:
-                self.output(f"Hit Graph throttling, trying again after {response.headers['Retry-After']} seconds")
+                self.output(
+                    f"Hit Graph throttling, trying again after {response.headers['Retry-After']} seconds"
+                )
                 while response.status_code == 429:
                     time.sleep(int(response.headers["Retry-After"]))
                     response = requests.get(endpoint, headers=headers)
 
-        if response.status_code == 200:
-            json_data = json.loads(response.text)
+        if response.status_code != 200:
+            raise ProcessorError(
+                "Request failed with ", response.status_code, " - ", response.text
+            )
+        json_data = json.loads(response.text)
 
-            if "@odata.nextLink" in json_data.keys():
-                record = self.makeapirequest(json_data["@odata.nextLink"], token)
-                entries = len(record["value"])
-                count = 0
-                while count < entries:
-                    json_data["value"].append(record["value"][count])
-                    count += 1
+        if "@odata.nextLink" in json_data.keys():
+            record = self.makeapirequest(json_data["@odata.nextLink"], token)
+            entries = len(record["value"])
+            count = 0
+            while count < entries:
+                json_data["value"].append(record["value"][count])
+                count += 1
 
-            return json_data
+        return json_data
 
-        else:
-            raise ProcessorError("Request failed with ", response.status_code, " - ", response.text)
-
-    def makeapirequestPost(self, postEndpoint: str, token: dict, q_param=None, json_data=None, status_code=200) -> dict:
+    def makeapirequestPost(
+        self,
+        postEndpoint: str,
+        token: dict,
+        q_param=None,
+        json_data=None,
+        status_code=200,
+    ) -> dict:
         """This function makes a request to the Graph API and returns the response as a dictionary.
 
         Args:
@@ -124,17 +146,19 @@ class IntuneUploaderBase(Processor):
         }
 
         if q_param is not None:
-            response = requests.post(postEndpoint, headers=headers, params=q_param, data=json_data)
+            response = requests.post(
+                postEndpoint, headers=headers, params=q_param, data=json_data
+            )
         else:
             response = requests.post(postEndpoint, headers=headers, data=json_data)
         if response.status_code == status_code:
             if response.text:
                 json_data = json.loads(response.text)
                 return json_data
-            else:
-                pass
         elif response.status_code == 429:
-            self.output(f"Hit Graph throttling, trying again after {response.headers['Retry-After']} seconds")
+            self.output(
+                f"Hit Graph throttling, trying again after {response.headers['Retry-After']} seconds"
+            )
             while response.status_code == 429:
                 time.sleep(int(response.headers["Retry-After"]))
                 response = requests.post(postEndpoint, headers=headers, data=json_data)
@@ -143,9 +167,18 @@ class IntuneUploaderBase(Processor):
             time.sleep(10)
             response = requests.post(postEndpoint, headers=headers, data=json_data)
         else:
-            raise ProcessorError("Request failed with ", response.status_code, " - ", response.text)
+            raise ProcessorError(
+                "Request failed with ", response.status_code, " - ", response.text
+            )
 
-    def makeapirequestPatch(self, patchEndpoint: str, token: dict, q_param=None, json_data=None, status_code=200) -> None:
+    def makeapirequestPatch(
+        self,
+        patchEndpoint: str,
+        token: dict,
+        q_param=None,
+        json_data=None,
+        status_code=200,
+    ) -> None:
         """This function makes a request to the Graph API and returns the response as a dictionary.
 
         Args:
@@ -162,15 +195,26 @@ class IntuneUploaderBase(Processor):
         }
 
         if q_param is not None:
-            response = requests.patch(patchEndpoint, headers=headers, params=q_param, data=json_data)
+            response = requests.patch(
+                patchEndpoint, headers=headers, params=q_param, data=json_data
+            )
         else:
             response = requests.patch(patchEndpoint, headers=headers, data=json_data)
         if response.status_code == status_code:
             pass
         else:
-            raise ProcessorError("Request failed with ", response.status_code, " - ", response.text)
+            raise ProcessorError(
+                "Request failed with ", response.status_code, " - ", response.text
+            )
 
-    def makeapirequestDelete(self, deleteEndpoint: str, token: dict, q_param=None, jdata=None, status_code=200) -> None:
+    def makeapirequestDelete(
+        self,
+        deleteEndpoint: str,
+        token: dict,
+        q_param=None,
+        jdata=None,
+        status_code=200,
+    ) -> None:
         """This function makes a DELETE request to the Graph API and returns the response as a dictionary.
 
         Args:
@@ -238,8 +282,8 @@ class IntuneUploaderBase(Processor):
         # Combine the signature and IV + encrypted data into a single byte string
         encrypted_pkg = signature + iv_data
 
-        # Generate a base64-encoded string of the encrypted package
-        encoded_pkg = base64.b64encode(encrypted_pkg).decode()
+        # Generate a base64-encoded string of the encrypted package (unused)
+        # encoded_pkg = base64.b64encode(encrypted_pkg).decode()
 
         # Generate a base64-encoded string of the encryption key
         encoded_key = base64.b64encode(encryptionKey).decode()
@@ -257,7 +301,9 @@ class IntuneUploaderBase(Processor):
         fileEncryptionInfo["@odata.type"] = "#microsoft.graph.fileEncryptionInfo"
         fileEncryptionInfo["encryptionKey"] = encoded_key
         fileEncryptionInfo["macKey"] = encoded_hmac_key
-        fileEncryptionInfo["initializationVector"] = base64.b64encode(initializationVector).decode()
+        fileEncryptionInfo["initializationVector"] = base64.b64encode(
+            initializationVector
+        ).decode()
         fileEncryptionInfo["profileIdentifier"] = profileIdentifier
         fileEncryptionInfo["fileDigestAlgorithm"] = fileDigestAlgorithm
         fileEncryptionInfo["fileDigest"] = fileDigest
@@ -350,8 +396,10 @@ class IntuneUploaderBase(Processor):
         Deletes an app from Intune.
         """
         if self.request.get("id") and self.content_update is False:
-            self.makeapirequestDelete(f"{self.BASE_ENDPOINT}/{self.request['id']}", self.token)
-    
+            self.makeapirequestDelete(
+                f"{self.BASE_ENDPOINT}/{self.request['id']}", self.token
+            )
+
     def wait_for_file_upload(self) -> None:
         """Waits for a file to be uploaded.
 
@@ -368,7 +416,7 @@ class IntuneUploaderBase(Processor):
             if status["uploadState"] == "commitFileFailed":
                 self.delete_app()
                 raise ProcessorError("Failed to commit file")
-            elif attempt > 20:
+            if attempt > 20:
                 self.delete_app()
                 raise ProcessorError("Timed out waiting for file upload to complete")
 
@@ -388,10 +436,12 @@ class IntuneUploaderBase(Processor):
             if status["uploadState"] == "azureStorageUriRequestFailed":
                 self.delete_app()
                 raise ProcessorError("Failed to get the Azure Storage upload URL")
-            elif attempt > 20:
+            if attempt > 20:
                 self.delete_app()
-                raise ProcessorError("Timed out waiting for the Azure Storage upload URL")
-            
+                raise ProcessorError(
+                    "Timed out waiting for the Azure Storage upload URL"
+                )
+
     def get_matching_apps(self, displayname: str) -> list:
         """Gets a list of apps from Intune that match the specified display name.
 
@@ -401,9 +451,14 @@ class IntuneUploaderBase(Processor):
         Returns:
             list: A list of apps that match the specified display name.
         """
-        params = {"$filter": f"(isof('microsoft.graph.macOSDmgApp') or isof('microsoft.graph.macOSPkgApp') or isof('microsoft.graph.macOSLobApp')) and displayName eq '{displayname}'", "$expand": "categories"}
-        request = self.makeapirequest(f"{self.BASE_ENDPOINT}", self.token, q_param=params)
-        
+        params = {
+            "$filter": f"(isof('microsoft.graph.macOSDmgApp') or isof('microsoft.graph.macOSPkgApp') or isof('microsoft.graph.macOSLobApp')) and displayName eq '{displayname}'",
+            "$expand": "categories",
+        }
+        request = self.makeapirequest(
+            f"{self.BASE_ENDPOINT}", self.token, q_param=params
+        )
+
         return request["value"]
 
     def get_current_app(self, displayname: str, version: int, odata_type: str) -> tuple:
@@ -416,15 +471,26 @@ class IntuneUploaderBase(Processor):
         Returns:
             tuple: The result of the request and the data returned by the request.
         """
-        
+
         matching_apps = self.get_matching_apps(displayname)
-        request = [app for app in matching_apps if app["displayName"] == displayname and app.get("primaryBundleVersion") == version or app.get("buildNumber") == version and app["@odata.type"] == odata_type]
+        request = [
+            app
+            for app in matching_apps
+            if app["displayName"] == displayname
+            and app.get("primaryBundleVersion") == version
+            or app.get("buildNumber") == version
+            and app["@odata.type"] == odata_type
+        ]
         result = None
         data = {}
 
         if request:
             for item in request:
-                item_version = item.get("primaryBundleVersion") if item.get("primaryBundleVersion") else item.get("buildNumber")
+                item_version = (
+                    item.get("primaryBundleVersion")
+                    if item.get("primaryBundleVersion")
+                    else item.get("buildNumber")
+                )
                 if item_version < version:
                     result = "update"
                     item["primaryBundleVersion"] = item_version
@@ -444,7 +510,9 @@ class IntuneUploaderBase(Processor):
             current_categories (list): The current categories for the app.
         """
         # Define the URL to retrieve the mobile app categories
-        category_url = "https://graph.microsoft.com/v1.0/deviceAppManagement/mobileAppCategories"
+        category_url = (
+            "https://graph.microsoft.com/v1.0/deviceAppManagement/mobileAppCategories"
+        )
 
         # Retrieve the list of mobile app categories
         categories = self.makeapirequest(category_url, self.token, "")
@@ -453,20 +521,31 @@ class IntuneUploaderBase(Processor):
         if current_categories:
             current_categories = [c["displayName"] for c in current_categories]
             # Filter the category IDs to only include those with display names in the category_names list and not in the current_categories list
-            category_ids = [c for c in categories["value"] if c["displayName"] in category_names and c["displayName"] not in current_categories]
+            category_ids = [
+                c
+                for c in categories["value"]
+                if c["displayName"] in category_names
+                and c["displayName"] not in current_categories
+            ]
         # If there are no current categories, filter the category IDs to only include those with display names in the category_names list
         else:
-            category_ids = [c for c in categories["value"] if c["displayName"] in category_names]
+            category_ids = [
+                c for c in categories["value"] if c["displayName"] in category_names
+            ]
 
         # If there are category IDs to add, add them to the app
         if category_ids:
             for category_id in category_ids:
                 # Create the data payload to add the category to the app
-                data = json.dumps({
-                    "@odata.id": f'{category_url}/{category_id["id"]}'
-                })
+                data = json.dumps({"@odata.id": f'{category_url}/{category_id["id"]}'})
                 # Make the API request to add the category to the app
-                self.makeapirequestPost(f'{self.BASE_ENDPOINT}/{self.request["id"]}/categories/$ref', self.token, "", data, 204)
+                self.makeapirequestPost(
+                    f'{self.BASE_ENDPOINT}/{self.request["id"]}/categories/$ref',
+                    self.token,
+                    "",
+                    data,
+                    204,
+                )
 
     def encode_icon(self, icon_path: str) -> str:
         """Encodes an icon file as a base64 string.
@@ -482,16 +561,24 @@ class IntuneUploaderBase(Processor):
 
     def assign_app(self, app, assignment_info: dict) -> None:
         """Assigns an app to groups.
-        
+
         Args:
             app (class): The app class.
             assignment_info (dict): The assignment information.
         """
-        current_assignment = self.makeapirequest(f"{self.BASE_ENDPOINT}/{self.request['id']}/assignments", self.token)
+        current_assignment = self.makeapirequest(
+            f"{self.BASE_ENDPOINT}/{self.request['id']}/assignments", self.token
+        )
         # Get the current group ids
-        current_group_ids = [c["target"].get("groupId") for c in current_assignment["value"] if c["target"].get("groupId")]
+        current_group_ids = [
+            c["target"].get("groupId")
+            for c in current_assignment["value"]
+            if c["target"].get("groupId")
+        ]
         # Check if the group id is not in the current assignments
-        missing_assignment = [a for a in assignment_info if a["group_id"] not in current_group_ids]
+        missing_assignment = [
+            a for a in assignment_info if a["group_id"] not in current_group_ids
+        ]
         data = {"mobileAppAssignments": []}
 
         if missing_assignment:
@@ -519,9 +606,18 @@ class IntuneUploaderBase(Processor):
                     }
                 )
 
-            self.output(f"Updating assignments for app {app.displayName} version {app.primaryBundleVersion}")
-            self.makeapirequestPost(f"{self.BASE_ENDPOINT}/{self.request['id']}/assign", self.token, "", json.dumps(data), 200)
-        
+            self.output(
+                f"Updating assignments for app {app.displayName} version {app.primaryBundleVersion}"
+            )
+            self.makeapirequestPost(
+                f"{self.BASE_ENDPOINT}/{self.request['id']}/assign",
+                self.token,
+                "",
+                json.dumps(data),
+                200,
+            )
+
+
 if __name__ == "__main__":
     PROCESSOR = IntuneUploaderBase()
     PROCESSOR.execute_shell()

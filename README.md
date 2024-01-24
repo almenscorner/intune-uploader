@@ -27,3 +27,11 @@ In the override file for a signed and notarized pkg, set the following key to up
 <key>lob_app</key>
 <true/>
 ```
+
+## Development
+Pull requests are welcome!
+
+Some ground rules before submitting a PR,
+* Install [pre-commit](https://pre-commit.com)
+   * Once installed, run `pre-commit install` in the forked repo
+* Make sure all tests pass before submitting a PR 

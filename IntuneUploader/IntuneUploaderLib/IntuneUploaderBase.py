@@ -575,9 +575,36 @@ class IntuneUploaderBase(Processor):
             for c in current_assignment["value"]
             if c["target"].get("groupId")
         ]
+        # Get the current all assignments
+        current_all_assignment = [
+            c["target"].get("@odata.type")
+            for c in current_assignment["value"]
+            if c["target"]["@odata.type"] != "#microsoft.graph.groupAssignmentTarget"
+        ]
+
+        # Convert human readable All Users and All Devices to the odata type
+        for assignment in assignment_info:
+            if assignment.get("all_assignment") == "AllUsers":
+                assignment[
+                    "all_assignment"
+                ] = "#microsoft.graph.allLicensedUsersAssignmentTarget"
+            elif assignment.get("all_assignment") == "AllDevices":
+                assignment[
+                    "all_assignment"
+                ] = "#microsoft.graph.allDevicesAssignmentTarget"
+
         # Check if the group id is not in the current assignments
         missing_assignment = [
-            a for a in assignment_info if a["group_id"] not in current_group_ids
+            a
+            for a in assignment_info
+            if "group_id" in a and a["group_id"] not in current_group_ids
+        ]
+        # Check if there are missing all assignments
+        missing_all_assignment = [
+            a
+            for a in assignment_info
+            if "all_assignment" in a
+            and a["all_assignment"] not in current_all_assignment
         ]
         data = {"mobileAppAssignments": []}
 
@@ -596,16 +623,30 @@ class IntuneUploaderBase(Processor):
                     }
                 )
 
-            for assignment in current_assignment["value"]:
+        if missing_all_assignment:
+            for assignment in missing_all_assignment:
                 data["mobileAppAssignments"].append(
                     {
                         "@odata.type": "#microsoft.graph.mobileAppAssignment",
-                        "target": assignment["target"],
+                        "target": {
+                            "@odata.type": assignment["all_assignment"],
+                        },
                         "intent": assignment["intent"],
                         "settings": None,
                     }
                 )
 
+        for assignment in current_assignment["value"]:
+            data["mobileAppAssignments"].append(
+                {
+                    "@odata.type": "#microsoft.graph.mobileAppAssignment",
+                    "target": assignment["target"],
+                    "intent": assignment["intent"],
+                    "settings": None,
+                }
+            )
+
+        if missing_all_assignment or missing_assignment:
             self.output(
                 f"Updating assignments for app {app.displayName} version {app.primaryBundleVersion}"
             )

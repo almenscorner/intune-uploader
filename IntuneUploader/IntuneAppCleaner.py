@@ -63,7 +63,7 @@ class IntuneAppCleaner(IntuneUploaderBase):
         )
 
         # When running from the command line, keep_versions is a string, convert to int
-        if isinstance(keep_versions, int):
+        if isinstance(keep_versions, str):
             keep_versions = int(keep_versions)
 
         # Get macthing apps

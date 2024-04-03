@@ -61,7 +61,6 @@ class IntuneAppPromoter(IntuneUploaderBase):
         self.CLIENT_SECRET = self.env.get("CLIENT_SECRET")
         self.TENANT_ID = self.env.get("TENANT_ID")
         app_name = self.env.get("display_name")
-        app_version = self.env.get("version")
         app_blacklist_versions = self.env.get("blacklist_versions")
         promotion_info = self.env.get("promotion_info")
 
@@ -123,8 +122,6 @@ class IntuneAppPromoter(IntuneUploaderBase):
 
         for intune_app in intune_apps:
             self.request = intune_app
-            # Create app object
-            app = App(app_name, app_version)
 
             # Get assignments for app
             assignments = self.makeapirequest(
@@ -138,12 +135,14 @@ class IntuneAppPromoter(IntuneUploaderBase):
                 if c["target"].get("groupId")
             ]
 
-            # Check if app version is blacklisted
-            version = (
-                lambda v: v.get("primaryBundleVersion")
-                if v.get("primaryBundleVersion")
-                else v.get("buildNumber")
-            )
+            def version(intune_app):
+                return intune_app.get("primaryBundleVersion") or intune_app.get(
+                    "buildNumber"
+                )
+
+            app_version = version(intune_app)
+            app = App(app_name, app_version)
+
             if app_blacklist_versions is not None and (
                 match_version(version(intune_app), app_blacklist_versions)
                 or match_version(version(intune_app), app_blacklist_versions)
@@ -193,17 +192,21 @@ class IntuneAppPromoter(IntuneUploaderBase):
             "report_fields": ["app name", "promotions", "blacklisted versions"],
             "data": {
                 "app name": app_name,
-                "promotions": ", ".join(
-                    [
-                        f"{promotion.get('version')} ({promotion.get('ring')})"
-                        for promotion in promotions
-                    ]
-                )
-                if len(promotions) > 0
-                else "",
-                "blacklisted versions": ", ".join(app_blacklist_versions)
-                if app_blacklist_versions is not None
-                else "",
+                "promotions": (
+                    ", ".join(
+                        [
+                            f"{promotion.get('version')} ({promotion.get('ring')})"
+                            for promotion in promotions
+                        ]
+                    )
+                    if len(promotions) > 0
+                    else ""
+                ),
+                "blacklisted versions": (
+                    ", ".join(app_blacklist_versions)
+                    if app_blacklist_versions is not None
+                    else ""
+                ),
             },
         }
 

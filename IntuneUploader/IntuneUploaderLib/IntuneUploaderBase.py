@@ -611,11 +611,15 @@ class IntuneUploaderBase(Processor):
         if missing_assignment:
             for assignment in missing_assignment:
                 # Assign the app to the group
+                if assignment["exclude"] is True:
+                    odata_type = "#microsoft.graph.exclusionGroupAssignmentTarget"
+                else:
+                    odata_type = "#microsoft.graph.groupAssignmentTarget"
                 data["mobileAppAssignments"].append(
                     {
                         "@odata.type": "#microsoft.graph.mobileAppAssignment",
                         "target": {
-                            "@odata.type": "#microsoft.graph.groupAssignmentTarget",
+                            "@odata.type": odata_type,
                             "groupId": assignment["group_id"],
                         },
                         "intent": assignment["intent"],

@@ -453,6 +453,9 @@ class IntuneAppUploader(IntuneUploaderBase):
             self.update_categories(app_categories, self.request.get("categories"))
 
         if app_assignment_info:
+            for assignment in app_assignment_info:
+                if "exclude" not in assignment:
+                    assignment["exclude"] = False
             self.assign_app(app_data, app_assignment_info)
 
         self.env["intune_app_changed"] = True

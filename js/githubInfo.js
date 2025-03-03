@@ -1,4 +1,4 @@
-const REPO_URL = "https://api.github.com/repos/almenscorner/intune-uploader";
+const REPO_URL = "https://raw.githubusercontent.com/almenscorner/intune-uploader/refs/heads/gh-pages/data/github.json";
 
 async function fetchGitHubStats() {
     try {
@@ -20,7 +20,7 @@ async function fetchGitHubStats() {
 // Fetch data on page load
 document.addEventListener("DOMContentLoaded", fetchGitHubStats);
 
-const contributorsUrl = "https://api.github.com/repos/almenscorner/intune-uploader/contributors";
+const contributorsUrl = "https://raw.githubusercontent.com/almenscorner/intune-uploader/refs/heads/gh-pages/data/contributors.json";
 
 async function fetchContributors() {
     try {

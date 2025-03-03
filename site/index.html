@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intune Uploader</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="transition-colors duration-300 bg-gray-900 text-white">
+    <!-- Header -->
+    <header class="w-full py-4 px-10 flex justify-between items-center border-b border-gray-700 bg-gray-900/90 sticky top-0 z-50 backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+            <h1 class="text-2xl font-extrabold gradient-text tracking-tight">Intune Uploader</h1>
+        </div>
+        <nav class="ml-auto space-x-6 text-sm font-light">
+            <a href="#quickstart" class="text-gray-400 hover:text-green-300">Quick Start</a>
+            <a href="#faq" class="text-gray-400 hover:text-green-300">FAQ</a>
+            <a href="https://macadmins.slack.com/archives/C05EDN7P337" target="_blank" class="text-green-300 font-semibold hover:underline">Join Slack</a>
+        </nav>
+    </header>
+
+    <div id="app" class="min-h-screen flex flex-col items-center justify-center px-6 py-24">
+        <div class="flex flex-col md:flex-row items-center md:items-center justify-between w-full max-w-5xl mx-auto mb-12">
+            <!-- Intro Section -->
+            <div class="w-full text-center md:text-left mr-5">
+                <p class="text-gray-300 text-lg font-light">
+                    This project aims to simplify the process of creating and updating apps and other payloads in Intune by leveraging the power of <a href="https://github.com/autopkg/autopkg" target="_blank" class="text-green-300 hover:underline">AutoPkg</a>. With AutoPkg, you can automate the process of downloading, packaging, and uploading apps to Intune, saving you time and effort.
+                </p>
+            </div>
+
+            <!-- Contact Box (Vertically Centered) -->
+            <div class="contact-box mt-6 md:mt-0 text-center md:text-left self-center">
+                <p class="text-gray-300 text-lg">💬 Need help or want to discuss Intune packaging?</p>
+                <a href="https://macadmins.slack.com/archives/C05EDN7P337" target="_blank" class="text-green-300 font-semibold hover:underline block mt-2">
+                    Join the macadmins Slack and say hi in #intune-uploader
+                </a>
+            </div>
+        </div>
+
+        <!-- GitHub Info Section -->
+        <div id="github-info" class="w-full max-w-3xl mt-6 flex flex-wrap gap-3 justify-center">
+            <span class="github-tag"><i class="fas fa-star text-green-300"></i><strong id="stars-count">--</strong> Stars</span>
+            <span class="github-tag"><i class="fas fa-code-branch text-green-300"></i><strong id="forks-count">--</strong> Forks</span>
+            <span class="github-tag"><i class="fas fa-users text-green-300"></i><strong>For macadmins by macadmins</strong></span>
+            <span class="github-tag"><i class="fas fa-certificate text-green-300"></i><strong id="license">--</strong></span>
+            <a href="https://github.com/almenscorner/intune-uploader" target="_blank"
+                class="rounded-lg github-tag bg-green-300 hover:bg-green-400 transition text-green-900 font-semibold flex items-center gap-2 px-4 py-2">
+                Leave a star on
+                <i class="fab fa-github"></i>
+            </a>
+            <a href="https://github.com/autopkg/almenscorner-recipes/issues/new" target="_blank"
+                class="rounded-lg github-tag bg-green-300 hover:bg-green-400 transition text-green-900 font-semibold">
+                Request an app
+            </a>
+            <div class="flex items-center space-x-2">
+                <span class="text-gray-400 text-sm">Contributors:</span>
+                <div id="contributors" class="flex -space-x-2"></div>
+            </div>
+        </div>
+
+        <!-- Divider Line -->
+        <div class="w-full max-w-4xl mx-auto border-t border-gray-700 my-6 mt-10 mb-10"></div>
+
+        <!-- Search Box -->
+        <div class="w-full max-w-md mb-10">
+            <input type="text" id="searchInput" placeholder=""
+            class="w-full p-3 border border-gray-700 rounded-lg shadow-sm bg-gray-800 text-white focus:ring-1 focus:ring-green-400 focus:outline-none transition-all duration-200"
+                   onkeyup="filterApps()">
+        </div>
+
+        <!-- App List -->
+        <div class="app-list" id="appList"></div>
+
+        <!-- Pagination Controls -->
+        <div class="mt-6 flex justify-center space-x-4" id="paginationControls">
+            <button onclick="prevPage()" id="prevButton" class="pagination-btn text-white">‹</button>
+            <span id="pageInfo" class="text-gray-400 mt-2"></span>
+            <button onclick="nextPage()" id="nextButton" class="pagination-btn text-white">›</button>
+        </div>
+
+        <!-- Quick Start Section -->
+        <div id="quickstart" class="w-full max-w-3xl p-6 rounded-lg bg-gray-800 shadow-lg mb-16 mt-16">
+            <h2 class="text-2xl font-bold gradient-text mb-6 tracking-wide">🚀 Quick Start</h2>
+
+            <p class="text-gray-300 mb-4 font-light">Follow the documentation to create the neccessary app registration and configuration:</p>
+            <a href="https://github.com/almenscorner/intune-uploader/wiki/intuneappuploader" target="_blank"
+                class="bg-green-300 text-gray-900 px-3 py-2 rounded font-semibold hover:bg-green-400">
+                Intune Uploader Wiki
+            </a>
+            <p class="text-gray-300 mb-4 font-light mt-6">Create Override:</p>
+
+            <div class="command-block">
+                <span class="command-symbol">$</span>
+                <span class="command-text">autopkg make-override</span>
+                <span class="command-highlight text-yellow-500">FirefoxSigned.intune.recipe</span>
+                <button class="copy-button group" onclick="copyCommand(this)">
+                    <i class="fa-solid fa-clone h-5 w-5 text-gray-500 group-hover:text-white transition"></i>
+                </button>
+            </div>
+
+            <p class="mt-5 text-gray-300 mb-4 font-light">Run It:</p>
+            <div class="command-block">
+                <span class="command-symbol">$</span>
+                <span class="command-text">autopkg run -v</span>
+                <span class="command-highlight text-yellow-500">FirefoxSigned.intune.recipe</span>
+                <button class="copy-button group" onclick="copyCommand(this)">
+                    <i class="fa-solid fa-clone h-5 w-5 text-gray-500 group-hover:text-white transition"></i>
+                </button>
+            </div>
+        </div>
+    </code>
+
+    <!-- FAQ Section -->
+    <div id="faq-container" class="w-full max-w-3xl p-6 mb-16">
+        <div id="faq" class="space-y-6 text-gray-300"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 bg-gray-900">
+        <p class="text-gray-500 text-sm font-light">Made with <i class="fas fa-heart text-red-500"></i> by Tobias Almén</p>
+    </footer>
+
+    <script src="js/fetchApps.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/faq.js"></script>
+    <script src="js/copyCommand.js"></script>
+    <script src="js/loadMarkdown.js"></script>
+    <script src="js/githubInfo.js"></script>
+</body>
+</html>

@@ -128,5 +128,14 @@
     <script src="js/copyCommand.js"></script>
     <script src="js/loadMarkdown.js"></script>
     <script src="js/githubInfo.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const favicon = document.createElement("link");
+            favicon.rel = "icon";
+            favicon.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='90' font-size='90'>📦</text></svg>";
+            document.head.appendChild(favicon);
+        });
+        </script>
 </body>
 </html>

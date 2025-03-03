@@ -37,7 +37,9 @@ function renderApps() {
         const formattedName = app.name.toLowerCase().replace(/\s+/g, "_") + ".png";
         const iconUrl = `${iconBaseUrl}${formattedName}`;
 
-        const appElement = document.createElement("div");
+        const appElement = document.createElement("a");
+        appElement.href = app.recipe_url;
+        appElement.target = "_blank";
         appElement.className = "app-item shadow-md";
 
         const imgElement = document.createElement("img");

@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+:root {
+    --dark-bg: #1e1e1e;
+    --card-bg: #1f2937;
+    --search-focus: #07c982;
+    --gradient-text: linear-gradient(135deg, #a8e6cf, #d4fc79);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.gradient-text {
+    background: var(--gradient-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.app-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-auto-rows: 160px;
+    gap: 24px;
+    justify-items: center;
+    align-items: center;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    transition: all 0.3s ease-in-out;
+}
+
+.app-list.fade-out {
+    opacity: 0;
+}
+
+.app-list.fade-in {
+    opacity: 1;
+}
+
+.app-item {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 150px;
+    height: 150px;
+    transition: background 0.2s ease-in-out, transform 0.2s ease-in-out;
+    font-weight: 500;
+    font-size: small;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.app-item:hover {
+    background-color: #2D3748;
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.recipe-link {
+    color: #d4fc79;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    text-decoration: underline;
+}
+
+.contact-box {
+    background-color: var(--card-bg);
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    margin: auto;
+}
+
+.command-block {
+    display: flex;
+    align-items: center;
+    background-color: #131821;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    border: 1px solid #374151;
+    overflow-x: auto;
+    gap: 0.4rem;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.command-symbol {
+    color: #9ca3af;
+}
+
+.command-text {
+    color: #ffffff;
+}
+
+.command-highlight {
+}
+
+.copy-button {
+    margin-left: auto;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: background 0.2s;
+}
+
+.copy-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.command-text, .command-highlight {
+    display: inline;
+    white-space: nowrap;
+}
+
+.pagination-btn {
+    padding: 8px 12px;
+    background-color: #2D3748;
+    border-radius: 6px;
+    transition: background 0.2s ease-in-out;
+}
+
+.pagination-btn:hover {
+    background-color: #4A5568;
+}
+
+.github-tag {
+    background: rgba(55, 65, 81, 0.6);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #e5e7eb;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s ease-in-out;
+}
+
+.github-tag:hover {
+    background: rgba(75, 85, 99, 0.8);
+}
+
+input:focus {
+    outline: none;
+    border: 2px solid var(--search-focus);
+    box-shadow: 0 0 8px var(--search-focus)
+}
+
+header {
+    background-color: #1e1e1e;
+    border-bottom: 1px solid #374151;
+    position: sticky;
+}

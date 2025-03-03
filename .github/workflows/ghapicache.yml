@@ -9,27 +9,29 @@ jobs:
   fetch:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout gh-pages branch
         uses: actions/checkout@v3
+        with:
+          ref: gh-pages
 
       - name: Fetch GitHub Repository Data
         run: |
           curl -H "Authorization: token ${{ secrets.GH_API_TOKEN }}" \
                -H "Accept: application/vnd.github.v3+json" \
                https://api.github.com/repos/almenscorner/intune-uploader \
-               > site/data/github.json
+               > data/github.json
 
       - name: Fetch GitHub Contributors
         run: |
           curl -H "Authorization: token ${{ secrets.GH_API_TOKEN }}" \
                -H "Accept: application/vnd.github.v3+json" \
                https://api.github.com/repos/almenscorner/intune-uploader/contributors \
-               > site/data/contributors.json
+               > data/contributors.json
 
-      - name: Commit & Push Changes
+      - name: Commit & Push Changes to gh-pages
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
           git add site/data/github.json site/data/contributors.json
-          git commit -m "Update GitHub API cache" || exit 0
-          git push
+          git commit -m "Update GitHub API cache [skip ci]" || exit 0
+          git push origin gh-pages

@@ -6,7 +6,7 @@ let currentPage = 1;
 const appsPerPage = 12;
 
 // Base path for local icons
-const iconBaseUrl = "data/icons/";
+const iconBaseUrl = "assets/icons/";
 
 async function fetchApps() {
     try {

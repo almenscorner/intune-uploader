@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Insert the header with a mobile toggle button
     document.getElementById("header-container").innerHTML = `
-        <header class="w-full py-4 px-6 flex justify-between items-center border-b border-gray-700 bg-gray-900/90 backdrop-blur-md sticky top-0 z-50">
+        <header class="w-full py-4 px-6 flex justify-between items-center border-b border-gray-700 bg-gray-900/90 backdrop-blur-md sticky top-0 z-50 text-sm">
             <div class="flex items-center space-x-3">
                 <h1 class="text-2xl font-extrabold gradient-text tracking-tight">Intune Uploader</h1>
             </div>

@@ -3,27 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intune Uploader</title>
+    <title>Intune Uploader | Dependencies</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="flex flex-col min-h-screen transition-colors duration-300 bg-gray-900 text-white">
+    <div class="blob" style="top: 10%; left: 20%;"></div>
+    <div class="blob" style="bottom: 15%; right: 15%;"></div>
+    <div class="blob" style="top: 50%; left: 50%;"></div>
     <!-- Header -->
     <div id="header-container" class="w-full sticky top-0 z-50"></div>
     <script src="js/loadHeader.js"></script>
+    
+    <div id="app" class="glass-effect min-h-screen flex flex-col items-center justify-center px-6 flex-1">
+        <!-- Main Content -->
+        <div id="dependencies" class="flex-1 mb-16 px-6 py-12">
+            <!-- Dependencies list will be loaded here -->
+        </div>
 
-    <!-- Main Content -->
-    <div id="dependencies" class="flex-1 mb-16 px-6 py-12">
-        <!-- Dependencies list will be loaded here -->
+
+        <!-- Footer -->
+        <footer class="w-full text-center py-4">
+            <p class="text-gray-500 text-sm font-light">Made with <i class="fas fa-heart text-red-500"></i> by Tobias Almén</p>
+        </footer>
     </div>
-
-    <!-- Footer -->
-    <footer class="w-full text-center py-4 bg-gray-900">
-        <p class="text-gray-500 text-sm font-light">
-            Made with <i class="fas fa-heart text-red-500"></i> by Tobias Almén
-        </p>
-    </footer>
 
     <script src="js/fetchDependencies.js"></script>
     <script src="js/copyCommand.js"></script>
@@ -34,12 +38,6 @@
             favicon.rel = "icon";
             favicon.href = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='90' font-size='90'>📦</text></svg>";
             document.head.appendChild(favicon);
-        });
-    </script>
-
-    <script>
-        document.getElementById("mobileMenuButton").addEventListener("click", function () {
-            document.getElementById("mobileNav").classList.toggle("hidden");
         });
     </script>
 </body>

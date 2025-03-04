@@ -16,7 +16,7 @@ async function fetchDependencies() {
 function renderDependencies(dependencies) {
     const container = document.getElementById("dependencies");
     container.innerHTML = `
-        <div class="max-w-5xl mx-auto mt-10 p-6 bg-gray-800 rounded-lg shadow-lg">
+        <div class="max-w-5xl mx-auto mt-5 p-6 bg-gray-800 rounded-lg shadow-lg">
             <h2 class="text-2xl font-bold gradient-text mb-4">📦 Dependency Repositories</h2>
             <p class="mb-5">Most of the recipes in almenscorner-recipes have a dependency on a parent recipe for downloading the application. To add a dependency repository, click the copy button next to it and run the command in the terminal.</p>
             <input type="text" id="searchBox" placeholder="🔍 Search repositories..." class="w-full mb-4 p-2 border border-gray-600 rounded bg-gray-900 text-white focus:ring-1 focus:ring-green-400">

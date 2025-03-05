@@ -8,7 +8,7 @@ const appsPerPage = 12;
 // Base path for local icons
 const iconBaseUrl = "https://almenscorner.github.io/intune-uploader/assets/icons/";
 
-async function fetchApps() {
+async function fetchRecipes() {
     try {
         const response = await fetch(jsonUrl);
         if (!response.ok) throw new Error("Failed to load app data.");
@@ -16,7 +16,7 @@ async function fetchApps() {
         apps = await response.json();
         filteredApps = [...apps];
 
-        document.getElementById("recipes").textContent = `${apps.length} recipes`;
+        document.getElementById("recipes").textContent = apps.length;
 
         renderApps(); // Ensure this is running
     } catch (error) {
@@ -45,7 +45,7 @@ function renderApps() {
         const imgElement = document.createElement("img");
         imgElement.src = iconUrl;
         imgElement.alt = `${app.name} icon`;
-        imgElement.className = "w-12 h-12 mb-2 hidden"; // Hide initially
+        imgElement.className = "w-12 h-12 mb-2 hidden app-icon";
 
         // Verify image exists before showing
         fetch(iconUrl, { method: "HEAD" })
@@ -115,4 +115,4 @@ function animatePageChange(callback) {
     }, 200);
 }
 
-document.addEventListener("DOMContentLoaded", fetchApps);
+document.addEventListener("DOMContentLoaded", fetchRecipes);

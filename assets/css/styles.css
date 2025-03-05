@@ -48,13 +48,19 @@
     transition: background 0.2s ease-in-out, transform 0.2s ease-in-out;
     font-weight: 500;
     font-size: small;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .app-item:hover {
-    background-color: #2D3748;
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px) scale(1.05);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.app-item:hover .app-icon {
+    transform: rotate(-5deg);
+    transition: transform 0.2s ease-in-out;
 }
 
 .recipe-link {
@@ -72,6 +78,7 @@
     width: 100%;
     max-width: 400px;
     margin: auto;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .command-block {
@@ -84,7 +91,11 @@
     border: 1px solid #374151;
     overflow-x: auto;
     gap: 0.4rem;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.quick-start {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .command-symbol {
@@ -156,6 +167,16 @@
     background: rgba(17, 24, 39, 0.6);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+}
+
+#mobileMenuButton.open .hamburger span:nth-child(1) {
+transform: translateY(8px) rotate(45deg);
+}
+#mobileMenuButton.open .hamburger span:nth-child(2) {
+opacity: 0;
+}
+#mobileMenuButton.open .hamburger span:nth-child(3) {
+transform: translateY(-8px) rotate(-45deg);
 }
 
 body::before {

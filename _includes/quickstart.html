@@ -1,0 +1,30 @@
+<!-- Quick Start Section -->
+<div id="quickstart" class="quick-start w-full max-w-3xl p-6 rounded-lg bg-gray-800 mb-16 mt-16">
+    <h2 class="text-2xl font-bold gradient-text mb-6 tracking-wide">🚀 Quick Start</h2>
+
+    <p class="text-gray-300 mb-4 font-light">Follow the documentation to create the neccessary app registration and configuration:</p>
+    <a href="https://github.com/almenscorner/intune-uploader/wiki/intuneappuploader" target="_blank"
+        class="bg-green-300 text-gray-900 px-3 py-2 rounded font-semibold hover:bg-green-400">
+        Intune Uploader Wiki
+    </a>
+
+    <p class="text-gray-300 mb-4 font-light mt-6">Create Override:</p>
+    <div class="command-block">
+        <span class="command-symbol">$</span>
+        <span class="command-text">autopkg make-override</span>
+        <span class="command-highlight text-yellow-500">FirefoxSigned.intune.recipe</span>
+        <button class="copy-button group" data-command="autopkg make-override FirefoxSigned.intune.recipe" onclick="copyCommand(this)">
+            <i class="fa-solid fa-clone h-5 w-5 text-gray-500 group-hover:text-white transition"></i>
+        </button>
+    </div>
+
+    <p class="mt-5 text-gray-300 mb-4 font-light">Run It:</p>
+    <div class="command-block">
+        <span class="command-symbol">$</span>
+        <span class="command-text">autopkg run -v</span>
+        <span class="command-highlight text-yellow-500">FirefoxSigned.intune.recipe</span>
+        <button class="copy-button group" data-command="autopkg run -v FirefoxSigned.intune.recipe" onclick="copyCommand(this)">
+            <i class="fa-solid fa-clone h-5 w-5 text-gray-500 group-hover:text-white transition"></i>
+        </button>
+    </div>
+</div>

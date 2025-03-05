@@ -1,0 +1,43 @@
+<header class="w-full py-4 px-6 bg-gray-900/90 sticky top-0 z-50 backdrop-blur-md font-[Poppins]">
+    <div class="flex items-center justify-between">
+        <h1 class="text-1xl gradient-text tracking-tight whitespace-nowrap">
+            Intune Uploader
+        </h1>
+        
+      <!-- Mobile Menu Button -->
+      <button id="mobileMenuButton" class="md:hidden focus:outline-none">
+        <div class="hamburger relative w-6 h-6">
+          <span
+            class="absolute left-0 w-full h-0.5 bg-green-300 transition-all duration-300 ease-in-out transform origin-center"
+            style="top: 3px;"
+          ></span>
+          <span
+            class="absolute left-0 w-full h-0.5 bg-green-300 transition-all duration-300 ease-in-out transform origin-center"
+            style="top: 11px;"
+          ></span>
+          <span
+            class="absolute left-0 w-full h-0.5 bg-green-300 transition-all duration-300 ease-in-out transform origin-center"
+            style="top: 19px;"
+          ></span>
+        </div>
+      </button>
+
+        <!-- Navigation -->
+      <nav id="navMenu" class="hidden md:flex md:space-x-6 text-sm font-light md:items-center">
+          <a href="{{ site.url }}{{ site.baseurl }}" class="nav-link">Home</a>
+          <a href="{{ site.url }}{{ site.baseurl }}/#quickstart" class="nav-link">Quick Start</a>
+          <a href="{{ site.url }}{{ site.baseurl }}/#faq-container" class="nav-link">FAQ</a>
+          <a href="{{ site.url }}{{ site.baseurl }}/dependencies" class="nav-link">Dependencies</a>
+          <a href="https://macadmins.slack.com/archives/C05EDN7P337" target="_blank" class="text-green-300">Join Slack</a>
+      </nav>
+    </div>
+
+    <!-- Mobile Nav (Hidden by default) -->
+    <div id="mobileNav" class="hidden flex flex-col space-y-3 mt-3 p-4 bg-gray-800 rounded-md md:hidden">
+        <a href="{{ site.url }}{{ site.baseurl }}" class="nav-link">Home</a>
+        <a href="{{ site.url }}{{ site.baseurl }}/#quickstart" class="nav-link">Quick Start</a>
+        <a href="{{ site.url }}{{ site.baseurl }}/#faq-container" class="nav-link">FAQ</a>
+        <a href="{{ site.url }}{{ site.baseurl }}/dependencies" class="nav-link">Dependencies</a>
+        <a href="https://macadmins.slack.com/archives/C05EDN7P337" target="_blank" class="text-green-300">Join Slack</a>
+    </div>
+</header>

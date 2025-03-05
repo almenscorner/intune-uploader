@@ -12,13 +12,12 @@ async function fetchGitHubStats() {
         document.getElementById("forks-count").textContent = data.forks.toLocaleString();
         document.getElementById("license").textContent = data.license.name;
 
+        console.log("GitHub stats loaded successfully");
+
     } catch (error) {
         console.error("Error fetching GitHub stats:", error);
     }
 }
-
-// Fetch data on page load
-document.addEventListener("DOMContentLoaded", fetchGitHubStats);
 
 const contributorsUrl = "https://raw.githubusercontent.com/almenscorner/intune-uploader/refs/heads/gh-pages/data/contributors.json";
 
@@ -48,5 +47,9 @@ async function fetchContributors() {
     }
 }
 
-// Load contributors when page loads
-document.addEventListener("DOMContentLoaded", fetchContributors);
+// Fetch all data on page load
+document.addEventListener("DOMContentLoaded", () => {
+    fetchGitHubStats();
+    fetchContributors();
+}
+);

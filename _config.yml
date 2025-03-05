@@ -1,0 +1,12 @@
+title: Intune Uploader
+email: almenscorner@outlook.com
+description: "Automating Intune app management with AutoPkg recipes."
+baseurl: "/intune-uploader"
+url: "https://almenscorner.github.io"
+twitter_username: almenscorner
+github_username:  almenscorner
+
+include:
+  - assets
+  - js
+  - data

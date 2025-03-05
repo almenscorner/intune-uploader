@@ -18,5 +18,5 @@ title: Intune Uploader
 
 <script src="{{ '/js/loadMarkdown.js' | relative_url }}"></script>
 <script src="{{ '/js/fetchRecipes.js' | relative_url }}"></script>
-<script src="{{ '/js/githubinfo.js' | relative_url }}"></script>
+<script src="{{ '/js/githubInfo.js' | relative_url }}"></script>
 <script src="{{ '/js/copyCommand.js' | relative_url }}"></script>

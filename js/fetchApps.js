@@ -16,7 +16,7 @@ async function fetchApps() {
         apps = await response.json();
         filteredApps = [...apps];
 
-        document.getElementById("searchInput").placeholder = `🔍 Search among ${apps.length} supported recipes...`;
+        document.getElementById("recipes").textContent = `${apps.length} recipes`;
 
         renderApps(); // Ensure this is running
     } catch (error) {

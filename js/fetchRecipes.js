@@ -40,12 +40,6 @@ function renderApps() {
         const appElement = document.createElement("div");
         appElement.className = "app-item relative bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer transition-transform hover:scale-105";
 
-        // App icon
-        const imgElement = document.createElement("img");
-        imgElement.src = iconUrl;
-        imgElement.alt = `${app.name} icon`;
-        imgElement.className = "w-12 h-12 mb-2 app-icon";
-
         // App title
         const titleElement = document.createElement("p");
         titleElement.className = "text-white font-semibold text-center";
@@ -55,14 +49,27 @@ function renderApps() {
         const openUrlButton = document.createElement("button");
         openUrlButton.className = "absolute top-2 right-2 text-gray-600 hover:text-gray-300 transition duration-200";
         openUrlButton.innerHTML = '<i class="fas fa-external-link-alt"></i>'; // FontAwesome icon
-
         openUrlButton.onclick = (event) => {
             event.stopPropagation(); // Prevent modal from opening
             window.open(app.recipe_url, "_blank");
         };
 
+        // Check if the icon exists before appending it
+        fetch(iconUrl, { method: "HEAD" })
+            .then(response => {
+                if (response.ok) {
+                    const imgElement = document.createElement("img");
+                    imgElement.src = iconUrl;
+                    imgElement.alt = `${app.name} icon`;
+                    imgElement.className = "w-12 h-12 mb-2 app-icon";
+                    appElement.prepend(imgElement);
+                }
+            })
+            .catch(() => {
+                console.warn(`⚠️ No icon found for ${app.name}`);
+            });
+
         // Append elements
-        appElement.appendChild(imgElement);
         appElement.appendChild(titleElement);
         appElement.appendChild(openUrlButton);
 
@@ -80,10 +87,41 @@ function openAppPopup(app) {
     const modalTitle = document.getElementById("modalTitle");
     const modalDescription = document.getElementById("modalDescription");
     const modalImage = document.getElementById("modalImage");
+    const modalCommand = document.getElementById("modalCommand");
 
     modalTitle.textContent = app.name;
     modalDescription.textContent = app.description || "No description available.";
-    modalImage.src = `${iconBaseUrl}${app.name.toLowerCase().replace(/\s+/g, "_")}.png`;
+
+    // Construct the icon URL
+    const formattedName = app.name.toLowerCase().replace(/\s+/g, "_") + ".png";
+    const iconUrl = `${iconBaseUrl}${formattedName}`;
+
+    // Check if image exists before setting it
+    fetch(iconUrl, { method: "HEAD" })
+        .then(response => {
+            if (response.ok) {
+                modalImage.src = iconUrl;
+                modalImage.classList.remove("hidden"); // Show image if it exists
+            } else {
+                modalImage.classList.add("hidden"); // Hide image if it doesn't exist
+            }
+        })
+        .catch(() => {
+            modalImage.classList.add("hidden"); // Hide image on error
+        });
+
+    // Set the AutoPkg command for the selected app
+    const recipe_name = app.recipe_url.split("/").pop();
+    modalCommand.innerHTML = `
+        <div class="command-block">
+            <span class="command-symbol">$</span>
+            <span class="command-text">autopkg make-override</span>
+            <span class="command-highlight text-yellow-500">${recipe_name}</span>
+            <button class="copy-button group" data-command="autopkg make-override ${recipe_name}" onclick="copyCommand(this)">
+                <i class="fa-solid fa-copy h-5 w-5 text-gray-500 group-hover:text-white transition"></i>
+            </button>
+        </div>
+    `;
 
     modal.classList.remove("hidden");
     document.body.classList.add("overflow-hidden"); // Prevent background scrolling

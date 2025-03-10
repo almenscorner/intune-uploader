@@ -10,13 +10,17 @@ function copyCommand(button) {
     navigator.clipboard.writeText(commandText).then(() => {
         console.log("Copied successfully!");
 
-        // Change icon color to indicate success
-        const icon = button.querySelector("i.fa-copy");
+        // Get the icon inside the button
+        const icon = button.querySelector("i");
         if (icon) {
-            icon.classList.replace("text-gray-400", "text-green-400");
+            // Change icon to a checkmark to indicate success
+            icon.classList.replace("fa-copy", "fa-check");
+            icon.classList.replace("text-gray-500", "text-green-400");
 
+            // Restore icon after 2 seconds
             setTimeout(() => {
-                icon.classList.replace("text-green-400", "text-gray-400");
+                icon.classList.replace("fa-check", "fa-copy");
+                icon.classList.replace("text-green-400", "text-gray-500");
             }, 2000);
         }
     }).catch(err => {

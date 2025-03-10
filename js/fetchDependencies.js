@@ -41,7 +41,7 @@ function renderDependencyList(dependencies) {
             </a>
             <button data-command="${dep.repo_add_command}" onclick="copyCommand(this)" 
                 class="copy-button text-gray-400 hover:text-green-300">
-                <i class="fas fa-copy"></i>
+                <i class="fa-solid fa-copy h-5 w-5 text-gray-500 group-hover:text-white transition"></i>
             </button>
         </li>
     `).join('');

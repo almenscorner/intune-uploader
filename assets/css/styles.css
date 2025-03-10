@@ -179,6 +179,53 @@ opacity: 0;
 transform: translateY(-8px) rotate(-45deg);
 }
 
+/* Center modal properly */
+#appModal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6); /* Dark overlay */
+    z-index: 50;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+/* Ensure modal content is perfectly centered */
+.modal-content {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 350px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+/* Show modal properly when it's open */
+#appModal:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Close button inside modal (aligned top-right) */
+#closeModal {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+}
+
+#closeModal:hover {
+    color: #fff;
+}
+
 body::before {
     content: "";
     font-family: 'Inter', sans-serif;

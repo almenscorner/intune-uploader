@@ -12,6 +12,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='90' font-size='90'>📦</text></svg>" type="image/x-icon">
 </head>
 <body class="flex flex-col min-h-screen transition-colors duration-300 bg-gray-900 text-white font-[Poppins] leading-relaxed">
+    {% include appModal.html %}
     {% include header.html %}
 
     <div id="app" class="glass-effect min-h-screen flex flex-col items-center justify-center px-6 flex-1">
@@ -24,5 +25,6 @@
     <script src="{{ '/js/mobileNav.js' | relative_url }}"></script>
     <script src="{{ '/js/smoothScroll.js' | relative_url }}"></script>
     <script src="{{ '/js/menuToggle.js' | relative_url }}" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.0.7/countUp.umd.js"></script>
 </body>
 </html>

@@ -16,9 +16,8 @@ async function fetchRecipes() {
         apps = await response.json();
         filteredApps = [...apps];
 
-        document.getElementById("recipes").textContent = apps.length;
-
         renderApps(); // Ensure this is running
+        recipeCountUp(filteredApps.length);
     } catch (error) {
         console.error("Error fetching app list:", error);
         document.getElementById("appList").innerHTML = `<p class="text-red-400">Failed to load app list.</p>`;
@@ -37,33 +36,95 @@ function renderApps() {
         const formattedName = app.name.toLowerCase().replace(/\s+/g, "_") + ".png";
         const iconUrl = `${iconBaseUrl}${formattedName}`;
 
-        const appElement = document.createElement("a");
-        appElement.href = app.recipe_url;
-        appElement.target = "_blank";
-        appElement.className = "app-item shadow-md";
+        // Create card container
+        const appElement = document.createElement("div");
+        appElement.className = "app-item relative bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer transition-transform hover:scale-105";
 
+        // App icon
         const imgElement = document.createElement("img");
         imgElement.src = iconUrl;
         imgElement.alt = `${app.name} icon`;
-        imgElement.className = "w-12 h-12 mb-2 hidden app-icon";
+        imgElement.className = "w-12 h-12 mb-2 app-icon";
 
-        // Verify image exists before showing
-        fetch(iconUrl, { method: "HEAD" })
-            .then(response => {
-                if (response.ok) {
-                    imgElement.classList.remove("hidden");
-                }
-            })
-            .catch(() => console.warn(`⚠️ No icon found for ${app.name}`));
+        // App title
+        const titleElement = document.createElement("p");
+        titleElement.className = "text-white font-semibold text-center";
+        titleElement.textContent = app.name;
 
+        // Open URL button
+        const openUrlButton = document.createElement("button");
+        openUrlButton.className = "absolute top-2 right-2 text-gray-600 hover:text-gray-300 transition duration-200";
+        openUrlButton.innerHTML = '<i class="fas fa-external-link-alt"></i>'; // FontAwesome icon
+
+        openUrlButton.onclick = (event) => {
+            event.stopPropagation(); // Prevent modal from opening
+            window.open(app.recipe_url, "_blank");
+        };
+
+        // Append elements
         appElement.appendChild(imgElement);
-        appElement.appendChild(document.createTextNode(app.name));
+        appElement.appendChild(titleElement);
+        appElement.appendChild(openUrlButton);
+
+        // Click to open popup/modal
+        appElement.addEventListener("click", () => openAppPopup(app));
 
         appList.appendChild(appElement);
     });
 
     updatePagination();
 }
+
+function openAppPopup(app) {
+    const modal = document.getElementById("appModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalDescription = document.getElementById("modalDescription");
+    const modalImage = document.getElementById("modalImage");
+
+    modalTitle.textContent = app.name;
+    modalDescription.textContent = app.description || "No description available.";
+    modalImage.src = `${iconBaseUrl}${app.name.toLowerCase().replace(/\s+/g, "_")}.png`;
+
+    modal.classList.remove("hidden");
+    document.body.classList.add("overflow-hidden"); // Prevent background scrolling
+
+    // Close modal when clicking outside content
+    modal.addEventListener("click", (event) => {
+        if (event.target === modal) closeModal();
+    });
+
+    // Listen for Escape key
+    document.addEventListener("keydown", handleEscapeKey);
+}
+
+function closeModal() {
+    const modal = document.getElementById("appModal");
+    modal.classList.add("hidden");
+    document.body.classList.remove("overflow-hidden"); // Restore scrolling
+
+    // Remove event listener to prevent multiple bindings
+    document.removeEventListener("keydown", handleEscapeKey);
+}
+
+// Handle Escape key press
+function handleEscapeKey(event) {
+    if (event.key === "Escape") {
+        closeModal();
+    }
+}
+
+// Attach close event listener
+document.getElementById("closeModal").addEventListener("click", closeModal);
+
+// Handle Escape key press
+function handleEscapeKey(event) {
+    if (event.key === "Escape") closeModal();
+}
+
+// Close modal
+document.getElementById("closeModal").addEventListener("click", () => {
+    document.getElementById("appModal").classList.add("hidden");
+});
 
 function updatePagination() {
     const pageInfo = document.getElementById("pageInfo");
@@ -114,5 +175,20 @@ function animatePageChange(callback) {
         }, 300);
     }, 200);
 }
+
+function recipeCountUp(recipeCount) {
+    const recipeCounter = new countUp.CountUp("recipeCounter", recipeCount, {
+        duration: 2,
+        separator: ",",
+    });
+
+    if (!recipeCounter.error) {
+        recipeCounter.start();
+    } else {
+        console.error(recipeCounter.error);
+    }
+}
+
+window.recipeCountUp = recipeCountUp;
 
 document.addEventListener("DOMContentLoaded", fetchRecipes);

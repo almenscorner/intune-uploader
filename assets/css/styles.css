@@ -98,6 +98,10 @@
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
+.demo-run {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
 .command-symbol {
     color: #9ca3af;
 }

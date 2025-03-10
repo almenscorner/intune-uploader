@@ -151,3 +151,9 @@ cython_debug/
 .DS_Store
 
 .vscode/
+
+site/
+
+.jekyll-cache/
+
+_site/

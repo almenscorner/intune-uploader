@@ -585,13 +585,13 @@ class IntuneUploaderBase(Processor):
         # Convert human readable All Users and All Devices to the odata type
         for assignment in assignment_info:
             if assignment.get("all_assignment") == "AllUsers":
-                assignment[
-                    "all_assignment"
-                ] = "#microsoft.graph.allLicensedUsersAssignmentTarget"
+                assignment["all_assignment"] = (
+                    "#microsoft.graph.allLicensedUsersAssignmentTarget"
+                )
             elif assignment.get("all_assignment") == "AllDevices":
-                assignment[
-                    "all_assignment"
-                ] = "#microsoft.graph.allDevicesAssignmentTarget"
+                assignment["all_assignment"] = (
+                    "#microsoft.graph.allDevicesAssignmentTarget"
+                )
 
         # Check if the group id is not in the current assignments
         missing_assignment = [
@@ -611,7 +611,7 @@ class IntuneUploaderBase(Processor):
         if missing_assignment:
             for assignment in missing_assignment:
                 # Assign the app to the group
-                if assignment["exclude"] is True:
+                if assignment.get("exclude") is True:
                     odata_type = "#microsoft.graph.exclusionGroupAssignmentTarget"
                 else:
                     odata_type = "#microsoft.graph.groupAssignmentTarget"

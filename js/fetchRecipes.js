@@ -207,25 +207,37 @@ function prevPage() {
     }
 }
 
+let searchTimeout;
+
 function filterApps() {
-    const searchInput = document.getElementById("searchInput").value.toLowerCase().trim();
-    
-    // Split search terms by space or comma, filter out empty strings
-    const searchTerms = searchInput.split(/[ ,]+/).filter(term => term.length > 0);
+    clearTimeout(searchTimeout); // Reset timeout if user keeps typing
 
-    // If no search term, show all apps
-    if (searchTerms.length === 0) {
-        filteredApps = [...apps];
-    } else {
-        // Filter apps if they match ANY search term
-        filteredApps = apps.filter(app =>
-            searchTerms.some(term => app.name.toLowerCase().includes(term))
-        );
-    }
+    searchTimeout = setTimeout(() => {
+        const searchInput = document.getElementById("searchInput").value.toLowerCase().trim();
+        const searchTerms = searchInput.split(/[ ,]+/).filter(term => term.length > 0);
+        const appList = document.getElementById("appList");
 
-    currentPage = 1;
-    renderApps();
+        // Apply smooth exit animation
+        appList.classList.add("opacity-50", "scale-95", "blur-sm", "transition-all", "duration-300");
+
+        setTimeout(() => {
+            if (searchTerms.length === 0) {
+                filteredApps = [...apps];
+            } else {
+                filteredApps = apps.filter(app =>
+                    searchTerms.some(term => app.name.toLowerCase().includes(term))
+                );
+            }
+
+            currentPage = 1;
+            renderApps();
+
+            appList.classList.remove("opacity-50", "scale-95", "blur-sm");
+            appList.classList.add("opacity-100", "scale-100");
+        }, 200);
+    }, 300);
 }
+
 function recipeCountUp(recipeCount) {
     const recipeCounter = new countUp.CountUp("recipeCounter", recipeCount, {
         duration: 2,

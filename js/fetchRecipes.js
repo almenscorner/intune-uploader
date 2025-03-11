@@ -193,27 +193,24 @@ function prevPage() {
 }
 
 function filterApps() {
-    const searchTerm = document.getElementById("searchInput").value.toLowerCase();
-    filteredApps = apps.filter(app => app.name.toLowerCase().includes(searchTerm));
+    const searchInput = document.getElementById("searchInput").value.toLowerCase().trim();
+    
+    // Split search terms by space or comma, filter out empty strings
+    const searchTerms = searchInput.split(/[ ,]+/).filter(term => term.length > 0);
+
+    // If no search term, show all apps
+    if (searchTerms.length === 0) {
+        filteredApps = [...apps];
+    } else {
+        // Filter apps if they match ANY search term
+        filteredApps = apps.filter(app =>
+            searchTerms.some(term => app.name.toLowerCase().includes(term))
+        );
+    }
+
     currentPage = 1;
     renderApps();
 }
-
-function animatePageChange(callback) {
-    const appList = document.getElementById("appList");
-    appList.classList.add("fade-out");
-
-    setTimeout(() => {
-        callback();
-        appList.classList.remove("fade-out");
-        appList.classList.add("fade-in");
-
-        setTimeout(() => {
-            appList.classList.remove("fade-in");
-        }, 300);
-    }, 200);
-}
-
 function recipeCountUp(recipeCount) {
     const recipeCounter = new countUp.CountUp("recipeCounter", recipeCount, {
         duration: 2,

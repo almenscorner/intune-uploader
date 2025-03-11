@@ -174,6 +174,21 @@ function updatePagination() {
     nextButton.disabled = currentPage >= Math.ceil(filteredApps.length / appsPerPage);
 }
 
+function animatePageChange(callback) {
+    const appList = document.getElementById("appList");
+    appList.classList.add("fade-out");
+
+    setTimeout(() => {
+        callback();
+        appList.classList.remove("fade-out");
+        appList.classList.add("fade-in");
+
+        setTimeout(() => {
+            appList.classList.remove("fade-in");
+        }, 300);
+    }, 200);
+}
+
 function nextPage() {
     if (currentPage * appsPerPage < filteredApps.length) {
         animatePageChange(() => {

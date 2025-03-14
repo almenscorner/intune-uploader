@@ -135,6 +135,10 @@ class IntuneAppUploader(IntuneUploaderBase):
             "description": "Bool value whether the app is a line-of-business app or not.",
             "default": False,
         },
+        "scope_tags": {
+            "required": False,
+            "description": "The scope tags to assign to the app. Provide as a list of strings the ids of the scope tags.",
+        },
     }
     output_variables = {
         "name": {"description": "The name of the app that was uploaded."},
@@ -190,6 +194,7 @@ class IntuneAppUploader(IntuneUploaderBase):
         app_icon = self.env.get("icon")
         app_preinstall_script = self.env.get("preinstall_script")
         app_postinstall_script = self.env.get("postinstall_script")
+        app_scope_tags = self.env.get("scope_tags")
         filename = os.path.basename(self.app_file)
         ignore_current_app = self.env.get("ignore_current_app")
         ignore_current_version = self.env.get("ignore_current_version")
@@ -221,6 +226,7 @@ class IntuneAppUploader(IntuneUploaderBase):
             installAsManaged: bool = app_install_as_managed
             minimumSupportedOperatingSystem: dict = field(default_factory=dict)
             largeIcon: dict = field(default_factory=dict, init=False)
+            roleScopeTagIds: list = field(default_factory=list)
 
             def __post_init__(self):
                 """
@@ -278,6 +284,9 @@ class IntuneAppUploader(IntuneUploaderBase):
                 "type": "image/png",
                 "value": self.encode_icon(app_icon),
             }
+
+        if app_scope_tags:
+            app_data.roleScopeTagIds = app_scope_tags
 
         # Get the app data as a dictionary
         app_data_dict = app_data.__dict__

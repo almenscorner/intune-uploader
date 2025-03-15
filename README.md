@@ -6,7 +6,7 @@ This project aims to simplify the process of creating and updating apps and othe
 Moving forward, additional processors for Intune might be added to this project that uploads more data like Shell scripts to provide a complete automated deployment process. This is why the base class [IntuneUploaderBase](IntuneUploader/IntuneUploaderLib/IntuneUploaderBase.py) was created, to allow for easier creation of additional processors. Contributions are welcome!
 
 Ideas for future processors:
-- Teams notifier processor
+- Ideas welcome
 
 For getting started help and documentation, please visit the wiki pages:
 - [Intune App Uploader](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppUploader)
@@ -14,6 +14,7 @@ For getting started help and documentation, please visit the wiki pages:
 - [Intune App Cleaner](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppCleaner)
 - [Intune Script Uploader](https://github.com/almenscorner/intune-uploader/wiki/IntuneScriptUploader)
 - [Intune App Promoter](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppPromoter)
+- [Intune Teams Notifier](https://github.com/almenscorner/intune-uploader/wiki/IntuneTeamsNotifier)
 
 Join the discussions on Slack  <a href="https://macadmins.slack.com/archives/C05EDN7P337">
     <img height="25" src="https://cdn4.iconfinder.com/data/icons/logos-and-brands/512/306_Slack_logo-256.png"/>

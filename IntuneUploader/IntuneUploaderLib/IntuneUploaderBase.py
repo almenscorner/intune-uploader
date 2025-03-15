@@ -585,13 +585,13 @@ class IntuneUploaderBase(Processor):
         # Convert human readable All Users and All Devices to the odata type
         for assignment in assignment_info:
             if assignment.get("all_assignment") == "AllUsers":
-                assignment["all_assignment"] = (
-                    "#microsoft.graph.allLicensedUsersAssignmentTarget"
-                )
+                assignment[
+                    "all_assignment"
+                ] = "#microsoft.graph.allLicensedUsersAssignmentTarget"
             elif assignment.get("all_assignment") == "AllDevices":
-                assignment["all_assignment"] = (
-                    "#microsoft.graph.allDevicesAssignmentTarget"
-                )
+                assignment[
+                    "all_assignment"
+                ] = "#microsoft.graph.allDevicesAssignmentTarget"
 
         # Check if the group id is not in the current assignments
         missing_assignment = [

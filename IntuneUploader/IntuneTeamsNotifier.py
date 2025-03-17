@@ -9,12 +9,12 @@ The processor is intended to be used in conjunction with the IntuneAppUploader, 
 Created by Tobias Almén
 """
 
-import requests
+import json
 import os
 import sys
-import json
 import time
 
+import requests
 from autopkglib import ProcessorError
 
 __all__ = ["IntuneTeamsNotifier"]
@@ -24,7 +24,7 @@ from IntuneUploaderLib.IntuneUploaderBase import IntuneUploaderBase
 
 
 class IntuneTeamsNotifier(IntuneUploaderBase):
-    """Uploads a script to Microsoft Intune using the Microsoft Graph API."""
+    """Sends a message to a Microsoft Teams channel using a webhook URL."""
 
     input_variables = {
         "webhook_url": {
@@ -61,7 +61,6 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
         )
 
         def _teams_message(title, message, imported=False, id=None):
-
             data = {
                 "type": "message",
                 "attachments": [

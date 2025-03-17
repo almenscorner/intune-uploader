@@ -67,13 +67,13 @@
   "deployments_url": "https://api.github.com/repos/almenscorner/intune-uploader/deployments",
   "created_at": "2023-06-26T12:06:15Z",
   "updated_at": "2025-03-15T22:42:38Z",
-  "pushed_at": "2025-03-16T22:03:43Z",
+  "pushed_at": "2025-03-16T23:03:44Z",
   "git_url": "git://github.com/almenscorner/intune-uploader.git",
   "ssh_url": "git@github.com:almenscorner/intune-uploader.git",
   "clone_url": "https://github.com/almenscorner/intune-uploader.git",
   "svn_url": "https://github.com/almenscorner/intune-uploader",
   "homepage": "",
-  "size": 10430,
+  "size": 10432,
   "stargazers_count": 57,
   "watchers_count": 57,
   "language": "Python",
@@ -83,7 +83,7 @@
   "has_wiki": true,
   "has_pages": true,
   "has_discussions": false,
-  "forks_count": 6,
+  "forks_count": 7,
   "mirror_url": null,
   "archived": false,
   "disabled": false,
@@ -104,7 +104,7 @@
     "macadmins"
   ],
   "visibility": "public",
-  "forks": 6,
+  "forks": 7,
   "open_issues": 1,
   "watchers": 57,
   "default_branch": "main",
@@ -116,6 +116,6 @@
     "pull": true
   },
   "temp_clone_token": "",
-  "network_count": 6,
+  "network_count": 7,
   "subscribers_count": 8
 }

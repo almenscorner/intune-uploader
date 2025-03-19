@@ -2,27 +2,29 @@ document.addEventListener("DOMContentLoaded", function () {
     const links = document.querySelectorAll(".nav-link");
 
     function updateActiveLink() {
-        const currentPath = window.location.pathname;
-
+        const basePath = "/intune-uploader";
+        const currentPath = window.location.pathname.replace(/\/$/, "");
+    
         links.forEach(link => {
-            const linkPath = new URL(link.href).pathname;
-
-            // Ignore Quick Start and FAQ
+            const linkPath = new URL(link.href).pathname.replace(/\/$/, "");
+    
+            // Ignore Quick Start and FAQ links
             if (link.href.includes("#quickstart") || link.href.includes("#faq-container")) {
                 return;
             }
-
-            // Ensure only the correct link is active
-            if (currentPath === "/" || currentPath.endsWith("intune-uploader")) {
-                if (linkPath === "/" || linkPath.endsWith("intune-uploader")) {
+    
+            // Reset classes before setting active state
+            link.classList.remove("text-green-300", "font-semibold");
+    
+            // Handle the Home page correctly
+            if (currentPath === basePath) {
+                if (linkPath === basePath) {
                     link.classList.add("text-green-300", "font-semibold");
-                } else {
-                    link.classList.remove("text-green-300", "font-semibold");
                 }
-            } else if (linkPath === currentPath) {
+            } 
+            // Check for exact path match
+            else if (linkPath === currentPath) {
                 link.classList.add("text-green-300", "font-semibold");
-            } else {
-                link.classList.remove("text-green-300", "font-semibold");
             }
         });
     }

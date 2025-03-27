@@ -461,6 +461,47 @@ class IntuneUploaderBase(Processor):
 
         return request["value"]
 
+    def get_app_categories(self) -> list:
+        """Gets a list of app categories from Intune.
+
+        Returns:
+            list: A list of app categories.
+        """
+        categories = []
+
+        request = self.makeapirequest(
+            "https://graph.microsoft.com/beta/deviceAppManagement/mobileAppCategories",
+            self.token,
+        )
+
+        for category in request["value"]:
+            categories.append(category["displayName"])
+
+        return categories
+
+    def create_app_categories(self, categories: list) -> list:
+        """Creates a list of app categories in Intune.
+
+        Args:
+            categories (list): The categories to create.
+
+        Returns:
+            list: A list of the created categories.
+        """
+        created_categories = []
+        for category in categories:
+            data = json.dumps({"displayName": category})
+            request = self.makeapirequestPost(
+                "https://graph.microsoft.com/beta/deviceAppManagement/mobileAppCategories",
+                self.token,
+                "",
+                data,
+                status_code=201,
+            )
+            created_categories.append(request)
+
+        return created_categories
+
     def get_current_app(self, displayname: str, version: int, odata_type: str) -> tuple:
         """Gets the current app from Intune.
 
@@ -585,13 +626,13 @@ class IntuneUploaderBase(Processor):
         # Convert human readable All Users and All Devices to the odata type
         for assignment in assignment_info:
             if assignment.get("all_assignment") == "AllUsers":
-                assignment[
-                    "all_assignment"
-                ] = "#microsoft.graph.allLicensedUsersAssignmentTarget"
+                assignment["all_assignment"] = (
+                    "#microsoft.graph.allLicensedUsersAssignmentTarget"
+                )
             elif assignment.get("all_assignment") == "AllDevices":
-                assignment[
-                    "all_assignment"
-                ] = "#microsoft.graph.allDevicesAssignmentTarget"
+                assignment["all_assignment"] = (
+                    "#microsoft.graph.allDevicesAssignmentTarget"
+                )
 
         # Check if the group id is not in the current assignments
         missing_assignment = [

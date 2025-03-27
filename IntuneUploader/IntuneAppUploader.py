@@ -296,6 +296,20 @@ class IntuneAppUploader(IntuneUploaderBase):
         current_app_result, current_app_data = self.get_current_app(
             app_displayname, app_bundleVersion, app_data_dict["@odata.type"]
         )
+        # Get app categories from Intune
+        intune_app_categories = self.get_app_categories()
+
+        # Check if the app categories exist in Intune
+        if app_categories:
+            categories_to_create = []
+            for category in app_categories:
+                if category not in intune_app_categories:
+                    categories_to_create.append(category)
+            if categories_to_create:
+                self.output(
+                    f"Creating categories {', '.join(categories_to_create)} in Intune"
+                )
+                self.create_app_categories(categories_to_create)
 
         # If the ignore_current_app variable is set to true, create the app regardless of whether it already exists
         if ignore_current_app and not current_app_data:

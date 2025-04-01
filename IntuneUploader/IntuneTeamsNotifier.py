@@ -43,6 +43,10 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
             "required": False,
             "description": "Results from the IntuneAppCleaner processor.",
         },
+        "intunevtappdeleter_summary_result": {
+            "required": False,
+            "description": "Results from the IntuneVTAppDeleter processor.",
+        },
     }
     output_variables = {}
 
@@ -58,6 +62,9 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
         )
         intuneappcleaner_summary_results = self.env.get(
             "intuneappcleaner_summary_result", {}
+        )
+        intunevtappdeleter_summary_results = self.env.get(
+            "intunevtappdeleter_summary_result", {}
         )
 
         def _teams_message(title, message, imported=False, id=None):
@@ -185,12 +192,37 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
             message = _teams_message(task_title, task_description)
             _post_teams_message(message)
 
+        def _vt_alerts(summary):
+            name = summary["data"]["app_name"]
+            version = summary["data"]["version"]
+            positives = summary["data"]["configured_positives"]
+            vt_positives = summary["data"]["virustotal_positives"]
+            vt_ratio = summary["data"]["virustotal_ratio"]
+            deleted = summary["data"]["deleted"]
+            task_title = f"🦠 Deleted {name} {version}"
+            task_description = ""
+            task_description += (
+                f"**Configured Positives:** {positives}"
+                + "\r \r"
+                + f"**VirusTotal Positives:** {vt_positives}"
+                + "\r \r"
+                + f"**VirusTotal Ratio:** {vt_ratio}"
+                + "\r \r"
+            )
+
+            if bool(deleted):
+                self.output(f"Posting virustotal deleted message to Teams for {name}")
+                message = _teams_message(task_title, task_description)
+                _post_teams_message(message)
+
         if intuneappuploader_summary_results:
             _updated_alerts(intuneappuploader_summary_results)
         if intuneappcleaner_summary_results:
             _removed_alerts(intuneappcleaner_summary_results)
         if intuneapppromoter_summary_result:
             _promoted_alerts(intuneapppromoter_summary_result)
+        if intunevtappdeleter_summary_results:
+            _vt_alerts(intunevtappdeleter_summary_results)
 
 
 if __name__ == "__main__":

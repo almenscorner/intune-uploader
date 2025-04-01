@@ -168,10 +168,40 @@ function updatePagination() {
     const pageInfo = document.getElementById("pageInfo");
     const prevButton = document.getElementById("prevButton");
     const nextButton = document.getElementById("nextButton");
+    const firstPageButton = document.getElementById("startButton")
+    const lastPageButton = document.getElementById("endButton")
+
+    const totalPages = Math.ceil(filteredApps.length / appsPerPage)
 
     pageInfo.textContent = `Page ${currentPage} of ${Math.ceil(filteredApps.length / appsPerPage)}`;
-    prevButton.disabled = currentPage === 1;
-    nextButton.disabled = currentPage >= Math.ceil(filteredApps.length / appsPerPage);
+
+    if (currentPage === 1) {
+        prevButton.disabled = true;
+        prevButton.classList.add("opacity-50", "pointer-events-none");
+    
+        firstPageButton.disabled = true;
+        firstPageButton.classList.add("opacity-50", "pointer-events-none");
+    } else {
+        prevButton.disabled = false;
+        prevButton.classList.remove("opacity-50", "pointer-events-none");
+    
+        firstPageButton.disabled = false;
+        firstPageButton.classList.remove("opacity-50", "pointer-events-none");
+    }
+    
+    if (currentPage >= totalPages) {
+        nextButton.disabled = true;
+        nextButton.classList.add("opacity-50", "pointer-events-none");
+    
+        lastPageButton.disabled = true;
+        lastPageButton.classList.add("opacity-50", "pointer-events-none");
+    } else {
+        nextButton.disabled = false;
+        nextButton.classList.remove("opacity-50", "pointer-events-none");
+    
+        lastPageButton.disabled = false;
+        lastPageButton.classList.remove("opacity-50", "pointer-events-none");
+    }
 }
 
 function animatePageChange(callback) {
@@ -187,6 +217,24 @@ function animatePageChange(callback) {
             appList.classList.remove("fade-in");
         }, 300);
     }, 200);
+}
+
+function firstPage() {
+    if (currentPage > 1) {
+        animatePageChange(() => {
+            currentPage = 1;
+            renderApps();
+        });
+    }
+}
+
+function lastPage() {
+    if (currentPage < Math.ceil(filteredApps.length / appsPerPage)) {
+        animatePageChange(() => {
+            currentPage = Math.ceil(filteredApps.length / appsPerPage);
+            renderApps();
+        });
+    }
 }
 
 function nextPage() {

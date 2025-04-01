@@ -16,6 +16,7 @@ For getting started help and documentation, please visit the wiki pages:
 - [Intune App Promoter](https://github.com/almenscorner/intune-uploader/wiki/IntuneAppPromoter)
 - [Intune Teams Notifier](https://github.com/almenscorner/intune-uploader/wiki/IntuneTeamsNotifier)
 - [Intune Slack Notifier](https://github.com/almenscorner/intune-uploader/wiki/IntuneSlackNotifier)
+- [Intune VT App Deleter](https://github.com/almenscorner/intune-uploader/wiki/IntuneVTAppDeleter)
 
 Join the discussions on Slack  <a href="https://macadmins.slack.com/archives/C05EDN7P337">
     <img height="25" src="https://cdn4.iconfinder.com/data/icons/logos-and-brands/512/306_Slack_logo-256.png"/>

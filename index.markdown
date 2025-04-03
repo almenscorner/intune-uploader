@@ -1,6 +1,15 @@
 ---
 layout: default
 title: Intune Uploader
+processors:
+    - IntuneAppUploader
+    - IntuneAppPromoter
+    - IntuneScriptUploader
+    - IntuneAppCleaner
+    - IntuneVTAppDeleter
+    - IntuneTeamsNotifier
+    - IntuneSlackNotifier
+---
 ---
 
 {% include intro.html %}
@@ -23,9 +32,12 @@ title: Intune Uploader
     </div>
 </div>
 
+{% include processors.html %}
+
 {% include faq.html %}
 
 <script src="{{ '/js/loadMarkdown.js' | relative_url }}"></script>
 <script src="{{ '/js/fetchRecipes.js' | relative_url }}"></script>
 <script src="{{ '/js/githubInfo.js' | relative_url }}"></script>
 <script src="{{ '/js/copyCommand.js' | relative_url }}"></script>
+<script src="{{ '/js/utils.js' | relative_url }}"></script>

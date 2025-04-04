@@ -7,7 +7,7 @@ async function loadMarkdown(url, targetElement) {
         const faqContainer = document.getElementById(targetElement);
 
         // Ensure header remains intact
-        faqContainer.innerHTML = `<h2 class="text-2xl font-bold gradient-text mb-6 tracking-wide">❓ FAQ</h2>`;
+        faqContainer.innerHTML = `<h2 class="text-2xl font-bold gradient-flow mb-6 tracking-wide">❓ FAQ</h2>`;
 
         // Split into questions and answers
         const faqItems = markdown.split("### ➤").slice(1);

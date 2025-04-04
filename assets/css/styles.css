@@ -17,11 +17,8 @@
     0% {
       background-position: 0% 50%;
     }
-    50% {
-      background-position: 100% 50%;
-    }
     100% {
-      background-position: 0% 50%;
+      background-position: 100% 50%;
     }
 }
   
@@ -31,9 +28,9 @@
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: shimmer 6s ease-in-out infinite;
+    animation: shimmer 6s linear infinite;
     display: inline-block;
-    will-change: background-position; /* Optimizes animation */
+    will-change: background-position;
 }
 
 .app-list {

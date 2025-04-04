@@ -67,7 +67,7 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
             "intunevtappdeleter_summary_result", {}
         )
 
-        def _teams_message(title, message, imported=False, id=None):
+        def _teams_message(title, message, imported=False, app_id=None):
             data = {
                 "type": "message",
                 "attachments": [
@@ -77,7 +77,7 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
                         "content": {
                             "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
                             "type": "AdaptiveCard",
-                            "version": "1.6",
+                            "version": "1.2",
                             "msteams": {"width": "Full"},
                             "body": [
                                 {
@@ -112,7 +112,7 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
                     {
                         "type": "Action.OpenUrl",
                         "title": "View App in Intune",
-                        "url": f"https://intune.microsoft.com/#view/Microsoft_Intune_Apps/SettingsMenu/~/0/appId/{id}",
+                        "url": f"https://intune.microsoft.com/#view/Microsoft_Intune_Apps/SettingsMenu/~/0/appId/{app_id}",
                     }
                 ]
 
@@ -120,14 +120,18 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
 
         def _post_teams_message(data):
             data = json.dumps(data)
-            response = requests.post(url=teams_webhook, data=data)
+            headers = {
+                "Content-Type": "application/json",
+            }
+            response = requests.post(url=teams_webhook, data=data, headers=headers)
 
             retry_count = 0
-            while response.status_code != 200 and retry_count < 3:
+            success_codes = [200, 201, 202, 204]
+            while response.status_code not in success_codes and retry_count < 3:
                 time.sleep(2)
-                response = requests.post(url=teams_webhook, data=data)
+                response = requests.post(url=teams_webhook, data=data, headers=headers)
                 retry_count += 1
-            if response.status_code != 200:
+            if response.status_code not in success_codes:
                 raise ProcessorError(
                     f"Failed to post message to Teams, status code: {response.status_code} - {response.text}"
                 )
@@ -144,14 +148,16 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
                 + f"**Intune App ID:** {result_id}"
                 + "\r \r"
                 + f"**Content Version ID:** {content_version_id}"
-                + "\r \r"
             )
 
             self.output(f"Posting imported message to Teams for {name} {version}")
             message = _teams_message(
-                task_title, task_description, imported=True, id=result_id
+                task_title, task_description, imported=True, app_id=result_id
             )
             _post_teams_message(message)
+
+            if intunevtappdeleter_summary_results:
+                _vt_alerts(intunevtappdeleter_summary_results)
 
         def _removed_alerts(summary):
             removed_count = summary["data"]["removed count"]
@@ -168,7 +174,6 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
                 + f"**Removed Versions:** {removed_versions}"
                 + "\r \r"
                 + f"**Keep Count:** {keep_count}"
-                + "\r \r"
             )
 
             self.output(f"Posting removed message to Teams for {name}")
@@ -185,7 +190,6 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
                 f"**Promotions:** {promotions}"
                 + "\r \r"
                 + f"**Blacklisted Versions:** {blacklisted_versions}"
-                + "\r \r"
             )
 
             self.output(f"Posting promoted message to Teams for {name}")
@@ -207,7 +211,6 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
                 + f"**VirusTotal Positives:** {vt_positives}"
                 + "\r \r"
                 + f"**VirusTotal Ratio:** {vt_ratio}"
-                + "\r \r"
             )
 
             if bool(deleted):
@@ -221,8 +224,6 @@ class IntuneTeamsNotifier(IntuneUploaderBase):
             _removed_alerts(intuneappcleaner_summary_results)
         if intuneapppromoter_summary_result:
             _promoted_alerts(intuneapppromoter_summary_result)
-        if intunevtappdeleter_summary_results:
-            _vt_alerts(intunevtappdeleter_summary_results)
 
 
 if __name__ == "__main__":

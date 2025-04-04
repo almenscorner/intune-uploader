@@ -60,7 +60,7 @@ class IntuneSlackNotifier(IntuneUploaderBase):
             "intuneappcleaner_summary_result", {}
         )
 
-        def _slack_message(title, message, imported=False, id=None):
+        def _slack_message(title, message, imported=False, app_id=None):
             payload = {
                 "blocks": [
                     {
@@ -77,7 +77,7 @@ class IntuneSlackNotifier(IntuneUploaderBase):
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": f"*<https://intune.microsoft.com/#view/Microsoft_Intune_Apps/SettingsMenu/~/0/appId/{id} | View App In Intune>*",
+                            "text": f"*<https://intune.microsoft.com/#view/Microsoft_Intune_Apps/SettingsMenu/~/0/appId/{app_id} | View App In Intune>*",
                         },
                     }
                 )
@@ -114,7 +114,7 @@ class IntuneSlackNotifier(IntuneUploaderBase):
 
             self.output(f"Posting imported message to slack for {name} {version}")
             message = _slack_message(
-                task_title, task_description, imported=True, id=result_id
+                task_title, task_description, imported=True, app_id=result_id
             )
             _post_slack_message(message)
 

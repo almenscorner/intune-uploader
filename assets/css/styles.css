@@ -13,6 +13,29 @@
     -webkit-text-fill-color: transparent;
 }
 
+@keyframes shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+}
+  
+.gradient-flow {
+    background: linear-gradient(270deg, #a8e6cf, #d4fc79, #a8e6cf);
+    background-size: 400% 400%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 6s ease-in-out infinite;
+    display: inline-block;
+    will-change: background-position; /* Optimizes animation */
+}
+
 .app-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -58,9 +81,18 @@
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
 }
 
+
+
+@keyframes wobble {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+    75% { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
+}
+
 .app-item:hover .app-icon {
-    transform: rotate(-5deg);
-    transition: transform 0.2s ease-in-out;
+    animation: wobble 0.6s ease-in-out;
 }
 
 .recipe-link {
@@ -99,6 +131,35 @@
     font-size: small;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     gap: 1rem;
+}
+
+.processor-item:hover .gradient-text {
+    filter: 
+    drop-shadow(0 0 2px #07c982)
+    drop-shadow(0 0 5px #07c982)
+    brightness(1.2);
+    transition: filter 0.3s ease-in-out;
+}
+
+.hover-glow:hover {
+    filter: drop-shadow(0 0 4px #07c982)
+    drop-shadow(0 0 4px #07c982);
+    transition: filter 0.3s ease-out;
+}
+
+.heartbeat {
+    animation: heartbeat 2s infinite;
+    transform-origin: center;
+    display: inline-block;
+}
+
+@keyframes heartbeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
 }
 
 .contact-box {

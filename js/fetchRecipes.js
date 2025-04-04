@@ -61,7 +61,7 @@ function renderApps() {
                     const imgElement = document.createElement("img");
                     imgElement.src = iconUrl;
                     imgElement.alt = `${app.name} icon`;
-                    imgElement.className = "w-12 h-12 mb-2 app-icon";
+                    imgElement.className = "w-12 h-12 mb-3 app-icon";
                     appElement.prepend(imgElement);
                 }
             })

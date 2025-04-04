@@ -28,7 +28,7 @@ processors:
         <h2 class="text-white text-2xl font-bold mb-4">See Intune Uploader in Action!</h2>
         <p class="text-gray-300 text-lg mb-4">Watch how it automates app uploads and updates.</p>
         <img src="{{ site.url }}{{ site.baseurl }}/assets/intune-uploader-demo.gif" alt="Intune Uploader Demo" 
-             class="demo-run w-full rounded-lg border border-gray-700">
+             class="demo-run w-full rounded-lg border border-gray-700 max-w-3xl">
     </div>
 </div>
 

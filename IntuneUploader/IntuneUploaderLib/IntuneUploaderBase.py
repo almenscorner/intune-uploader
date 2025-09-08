@@ -378,9 +378,20 @@ class IntuneUploaderBase(Processor):
             uri = f"{azure_storage_uri}&comp=blocklist"
             headers = {"Content-Type": "application/xml"}
             r = requests.put(uri, headers=headers, data=block_list_xml)
-
+            
+            # retry 5 times if the upload fails with exponential backoff
             if r.status_code != 201:
-                raise ProcessorError("Failed to upload block list XML")
+                attempt = 1
+                while attempt <= 5:
+                    wait_time = 2 ** attempt
+                    self.output(f"Failed to upload block list, retrying in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                    r = requests.put(uri, headers=headers, data=block_list_xml)
+                    if r.status_code == 201:
+                        break
+                    attempt += 1
+            if r.status_code != 201:
+                raise ProcessorError("Failed to upload block list")
 
     def get_file_content_status(self) -> dict:
         """Returns the status of a file upload.

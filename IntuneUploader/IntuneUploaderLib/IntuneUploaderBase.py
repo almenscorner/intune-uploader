@@ -378,19 +378,22 @@ class IntuneUploaderBase(Processor):
             uri = f"{azure_storage_uri}&comp=blocklist"
             headers = {"Content-Type": "application/xml"}
             r = requests.put(uri, headers=headers, data=block_list_xml)
-            
+
             # retry 5 times if the upload fails with exponential backoff
             if r.status_code != 201:
                 attempt = 1
                 while attempt <= 5:
-                    wait_time = 2 ** attempt
-                    self.output(f"Failed to upload block list, retrying in {wait_time} seconds...")
+                    wait_time = 2**attempt
+                    self.output(
+                        f"Failed to upload block list, retrying in {wait_time} seconds..."
+                    )
                     time.sleep(wait_time)
                     r = requests.put(uri, headers=headers, data=block_list_xml)
                     if r.status_code == 201:
                         break
                     attempt += 1
             if r.status_code != 201:
+                self.delete_app()
                 raise ProcessorError("Failed to upload block list")
 
     def get_file_content_status(self) -> dict:
@@ -637,13 +640,13 @@ class IntuneUploaderBase(Processor):
         # Convert human readable All Users and All Devices to the odata type
         for assignment in assignment_info:
             if assignment.get("all_assignment") == "AllUsers":
-                assignment[
-                    "all_assignment"
-                ] = "#microsoft.graph.allLicensedUsersAssignmentTarget"
+                assignment["all_assignment"] = (
+                    "#microsoft.graph.allLicensedUsersAssignmentTarget"
+                )
             elif assignment.get("all_assignment") == "AllDevices":
-                assignment[
-                    "all_assignment"
-                ] = "#microsoft.graph.allDevicesAssignmentTarget"
+                assignment["all_assignment"] = (
+                    "#microsoft.graph.allDevicesAssignmentTarget"
+                )
 
         # Check if the group id is not in the current assignments
         missing_assignment = [

@@ -130,6 +130,8 @@ class IntuneScriptUploader(IntuneUploaderBase):
         )
         self.CLIENT_ID = self.env.get("CLIENT_ID")
         self.CLIENT_SECRET = self.env.get("CLIENT_SECRET")
+        self.CLIENT_CERTIFICATE_PATH = self.env.get("CLIENT_CERTIFICATE_PATH")
+        self.CLIENT_CERTIFICATE_PASSWORD = self.env.get("CLIENT_CERTIFICATE_PASSWORD")
         self.TENANT_ID = self.env.get("TENANT_ID")
         script_path = self.env.get("script_path")
         script_description = self.env.get("description")
@@ -155,7 +157,11 @@ class IntuneScriptUploader(IntuneUploaderBase):
 
         # Get token
         self.token = self.obtain_accesstoken(
-            self.CLIENT_ID, self.CLIENT_SECRET, self.TENANT_ID
+            self.CLIENT_ID,
+            self.CLIENT_SECRET,
+            self.TENANT_ID,
+            cert_path=self.CLIENT_CERTIFICATE_PATH,
+            cert_password=self.CLIENT_CERTIFICATE_PASSWORD,
         )
 
         @dataclass

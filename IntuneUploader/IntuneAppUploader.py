@@ -34,8 +34,16 @@ class IntuneAppUploader(IntuneUploaderBase):
             "description": "The client ID to use for authenticating the request.",
         },
         "CLIENT_SECRET": {
-            "required": True,
-            "description": "The client secret to use for authenticating the request.",
+            "required": False,
+            "description": "The client secret to use for authenticating the request. Required when not using certificate authentication.",
+        },
+        "CLIENT_CERTIFICATE_PATH": {
+            "required": False,
+            "description": "Path to a PEM or PKCS#12 (.pfx/.p12) file containing both the private key and certificate. When set, certificate authentication is used and CLIENT_SECRET is ignored.",
+        },
+        "CLIENT_CERTIFICATE_PASSWORD": {
+            "required": False,
+            "description": "Password for the certificate file, if encrypted.",
         },
         "TENANT_ID": {
             "required": True,
@@ -167,6 +175,8 @@ class IntuneAppUploader(IntuneUploaderBase):
         )
         self.CLIENT_ID = self.env.get("CLIENT_ID")
         self.CLIENT_SECRET = self.env.get("CLIENT_SECRET")
+        self.CLIENT_CERTIFICATE_PATH = self.env.get("CLIENT_CERTIFICATE_PATH")
+        self.CLIENT_CERTIFICATE_PASSWORD = self.env.get("CLIENT_CERTIFICATE_PASSWORD")
         self.TENANT_ID = self.env.get("TENANT_ID")
         self.RECIPE_CACHE_DIR = self.env.get("RECIPE_CACHE_DIR")
         # Set the content_updated variable to false
@@ -202,7 +212,11 @@ class IntuneAppUploader(IntuneUploaderBase):
 
         # Get the access token
         self.token = self.obtain_accesstoken(
-            self.CLIENT_ID, self.CLIENT_SECRET, self.TENANT_ID
+            self.CLIENT_ID,
+            self.CLIENT_SECRET,
+            self.TENANT_ID,
+            cert_path=self.CLIENT_CERTIFICATE_PATH,
+            cert_password=self.CLIENT_CERTIFICATE_PASSWORD,
         )
 
         @dataclass

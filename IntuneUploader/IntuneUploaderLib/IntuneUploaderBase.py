@@ -24,18 +24,35 @@ class IntuneUploaderBase(Processor):
     """IntuneUploaderBase processor"""
 
     def obtain_accesstoken(
-        self, client_id: str, client_secret: str, tenant_id: str
+        self,
+        client_id: str,
+        client_secret: str,
+        tenant_id: str,
+        cert_path: str = None,
+        cert_password: str = None,
     ) -> dict:
         """This function obtains an access token from the Microsoft Graph API.
 
+        If cert_path is provided, certificate-based authentication is used and
+        client_secret is ignored. Otherwise the client_id/client_secret flow is used.
+
         Args:
             client_id (str): The client ID to use for authenticating the request.
-            client_secret (str): The client secret to use for authenticating the request.
+            client_secret (str): The client secret. Ignored when cert_path is set.
             tenant_id (str): The tenant ID to use for authenticating the request.
+            cert_path (str, optional): Path to a PEM or PKCS#12 (.pfx/.p12) file
+                containing both the private key and certificate. Defaults to None.
+            cert_password (str, optional): Password protecting the private key or
+                PKCS#12 file. Defaults to None.
 
         Returns:
             dict: The response from the request as a dictionary.
         """
+
+        if cert_path:
+            return self._obtain_accesstoken_cert(
+                client_id, tenant_id, cert_path, cert_password
+            )
 
         url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -54,6 +71,84 @@ class IntuneUploaderBase(Processor):
             )
         response = json.loads(response.text)
         return response
+
+    def _obtain_accesstoken_cert(
+        self,
+        client_id: str,
+        tenant_id: str,
+        cert_path: str,
+        cert_password: str = None,
+    ) -> dict:
+        """Obtains an access token using certificate-based authentication.
+
+        Loads the certificate from PEM or PKCS#12, computes the SHA-1 thumbprint,
+        and uses MSAL to acquire a token via signed JWT client assertion. The
+        public certificate is included to enable Subject Name + Issuer (SNI)
+        authentication, which Microsoft recommends and which supports cert rollover.
+        """
+        try:
+            import msal
+        except ImportError:
+            raise ProcessorError(
+                "Certificate authentication requires the 'msal' package. "
+                "Install with: /usr/local/autopkg/python -m pip install msal"
+            )
+
+        from cryptography import x509
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.serialization import pkcs12
+
+        with open(cert_path, "rb") as f:
+            cert_data = f.read()
+        password_bytes = cert_password.encode() if cert_password else None
+
+        if cert_path.lower().endswith((".pfx", ".p12")):
+            private_key_obj, certificate, _ = pkcs12.load_key_and_certificates(
+                cert_data, password_bytes
+            )
+        else:
+            private_key_obj = serialization.load_pem_private_key(
+                cert_data, password_bytes
+            )
+            try:
+                certificate = x509.load_pem_x509_certificate(cert_data)
+            except ValueError:
+                certificate = None
+
+        if private_key_obj is None or certificate is None:
+            raise ProcessorError(
+                f"Certificate file {cert_path} must contain both a private key "
+                "and an X.509 certificate."
+            )
+
+        private_key_pem = private_key_obj.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        ).decode()
+        thumbprint = certificate.fingerprint(hashes.SHA1()).hex()
+        public_cert_pem = certificate.public_bytes(
+            serialization.Encoding.PEM
+        ).decode()
+
+        app = msal.ConfidentialClientApplication(
+            client_id,
+            authority=f"https://login.microsoftonline.com/{tenant_id}",
+            client_credential={
+                "private_key": private_key_pem,
+                "thumbprint": thumbprint,
+                "public_certificate": public_cert_pem,
+            },
+        )
+        result = app.acquire_token_for_client(
+            scopes=["https://graph.microsoft.com/.default"]
+        )
+        if "access_token" not in result:
+            raise ProcessorError(
+                "Failed to obtain access token: "
+                f"{result.get('error_description', result)}"
+            )
+        return result
 
     def makeapirequest(self, endpoint: str, token: dict, q_param=None) -> dict:
         """This function makes a request to the Graph API and returns the response as a dictionary.

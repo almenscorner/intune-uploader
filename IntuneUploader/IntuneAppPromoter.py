@@ -59,6 +59,8 @@ class IntuneAppPromoter(IntuneUploaderBase):
         )
         self.CLIENT_ID = self.env.get("CLIENT_ID")
         self.CLIENT_SECRET = self.env.get("CLIENT_SECRET")
+        self.CLIENT_CERTIFICATE_PATH = self.env.get("CLIENT_CERTIFICATE_PATH")
+        self.CLIENT_CERTIFICATE_PASSWORD = self.env.get("CLIENT_CERTIFICATE_PASSWORD")
         self.TENANT_ID = self.env.get("TENANT_ID")
         app_name = self.env.get("display_name")
         app_blacklist_versions = self.env.get("blacklist_versions")
@@ -88,7 +90,11 @@ class IntuneAppPromoter(IntuneUploaderBase):
 
         # Get access token
         self.token = self.obtain_accesstoken(
-            self.CLIENT_ID, self.CLIENT_SECRET, self.TENANT_ID
+            self.CLIENT_ID,
+            self.CLIENT_SECRET,
+            self.TENANT_ID,
+            cert_path=self.CLIENT_CERTIFICATE_PATH,
+            cert_password=self.CLIENT_CERTIFICATE_PASSWORD,
         )
 
         # Check if promotion info is set

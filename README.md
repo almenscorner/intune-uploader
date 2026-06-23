@@ -31,6 +31,11 @@ In the override file for a signed and notarized pkg, set the following key to up
 <true/>
 ```
 
+### Azure AD App Registration
+To use these processors, you must create an Azure AD App Registration with the following application API Permission:
+
+DeviceManagementApps.ReadWrite.All
+
 ## Development
 Pull requests are welcome!
 

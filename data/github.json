@@ -81,11 +81,11 @@
   "has_wiki": true,
   "has_pages": true,
   "has_discussions": false,
-  "forks_count": 10,
+  "forks_count": 11,
   "mirror_url": null,
   "archived": false,
   "disabled": false,
-  "open_issues_count": 1,
+  "open_issues_count": 2,
   "license": {
     "key": "apache-2.0",
     "name": "Apache License 2.0",
@@ -104,8 +104,8 @@
     "macadmins"
   ],
   "visibility": "public",
-  "forks": 10,
-  "open_issues": 1,
+  "forks": 11,
+  "open_issues": 2,
   "watchers": 78,
   "default_branch": "main",
   "permissions": {
@@ -116,6 +116,6 @@
     "pull": true
   },
   "temp_clone_token": "",
-  "network_count": 10,
+  "network_count": 11,
   "subscribers_count": 8
 }

@@ -81,7 +81,7 @@
   "has_wiki": true,
   "has_pages": true,
   "has_discussions": false,
-  "forks_count": 11,
+  "forks_count": 12,
   "mirror_url": null,
   "archived": false,
   "disabled": false,
@@ -104,7 +104,7 @@
     "macadmins"
   ],
   "visibility": "public",
-  "forks": 11,
+  "forks": 12,
   "open_issues": 1,
   "watchers": 78,
   "default_branch": "main",
@@ -116,6 +116,6 @@
     "pull": true
   },
   "temp_clone_token": "",
-  "network_count": 11,
+  "network_count": 12,
   "subscribers_count": 8
 }

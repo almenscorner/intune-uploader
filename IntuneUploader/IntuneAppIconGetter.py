@@ -29,6 +29,10 @@ class IntuneAppIconGetter(DmgMounter):
             "required": True,
             "description": "Name of the app to use in the output file name.",
         },
+        "rename_icon": {
+            "required": False,
+            "description": "Renames the icon file using lowercase and underscores.",
+        },
     }
     output_variables = {
         "icon_file_path": {
@@ -41,6 +45,8 @@ class IntuneAppIconGetter(DmgMounter):
         # Get input variables
         app_file = self.env.get("app_file")
         name = self.env.get("name")
+        if self.env.get("rename_icon"):
+            name = name.lower().replace(" ", "_")
         recipe_cache_dir = self.env.get("RECIPE_CACHE_DIR")
         self.env["icon_file_path"] = None
         mount_point = None

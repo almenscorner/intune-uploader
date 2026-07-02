@@ -497,7 +497,7 @@ class IntuneUploaderBase(Processor):
         Returns:
             dict: The file content status dictionary.
         """
-        url = f"{self.BASE_ENDPOINT}/{self.request['id']}/microsoft.graph.macOSLobApp/contentVersions/{self.content_version_request['id']}/files/{self.content_file_request['id']}"
+        url = f"{self.BASE_ENDPOINT}/{self.request['id']}/{self.app_odata_type_str}/contentVersions/{self.content_version_request['id']}/files/{self.content_file_request['id']}"
         return self.makeapirequest(url, self.token)
 
     def delete_app(self) -> None:
@@ -528,6 +528,26 @@ class IntuneUploaderBase(Processor):
             if attempt > 20:
                 self.delete_app()
                 raise ProcessorError("Timed out waiting for file upload to complete")
+
+    def wait_for_publishing_state(self, timeout: int = 60) -> None:
+        """Waits for the app's publishingState to become 'published' before assignment.
+
+        Intune rejects /assign with 400 if publishingState is not 'published' (e.g.
+        still 'processing' after a recent upload). Polls every 10 s up to `timeout` s.
+        """
+        app_id = self.request["id"]
+        for _ in range(max(1, timeout // 10)):
+            app = self.makeapirequest(f"{self.BASE_ENDPOINT}/{app_id}", self.token)
+            state = app.get("publishingState", "")
+            if state == "published":
+                return
+            self.output(f"App publishingState is '{state}', waiting 10s...")
+            time.sleep(10)
+        raise ProcessorError(
+            f"App '{app_id}' is not in a published state. "
+            "The app may be stuck — delete it from the Intune admin center and re-run this recipe: "
+            f"https://intune.microsoft.com/#view/Microsoft_Intune_Apps/SettingsMenu/~/0/appId/{app_id}"
+        )
 
     def wait_for_azure_storage_uri(self) -> None:
         """Waits for an Azure Storage upload URL to be generated.
@@ -627,8 +647,6 @@ class IntuneUploaderBase(Processor):
             app
             for app in matching_apps
             if app["displayName"] == displayname
-            and app.get("primaryBundleVersion") == version
-            or app.get("buildNumber") == version
             and app["@odata.type"] == odata_type
         ]
         result = None
@@ -719,76 +737,51 @@ class IntuneUploaderBase(Processor):
         current_assignment = self.makeapirequest(
             f"{self.BASE_ENDPOINT}/{self.request['id']}/assignments", self.token
         )
-        # Get the current group ids
         current_group_ids = [
             c["target"].get("groupId")
             for c in current_assignment["value"]
             if c["target"].get("groupId")
         ]
-        # Get the current all assignments
         current_all_assignment = [
             c["target"].get("@odata.type")
             for c in current_assignment["value"]
             if c["target"]["@odata.type"] != "#microsoft.graph.groupAssignmentTarget"
         ]
 
-        # Convert human readable All Users and All Devices to the odata type
-        for assignment in assignment_info:
-            if assignment.get("all_assignment") == "AllUsers":
-                assignment["all_assignment"] = (
-                    "#microsoft.graph.allLicensedUsersAssignmentTarget"
-                )
-            elif assignment.get("all_assignment") == "AllDevices":
-                assignment["all_assignment"] = (
-                    "#microsoft.graph.allDevicesAssignmentTarget"
-                )
+        normalized = self._normalize_assignment_info(assignment_info)
 
-        # Check if the group id is not in the current assignments
         missing_assignment = [
-            a
-            for a in assignment_info
-            if "group_id" in a and a["group_id"] not in current_group_ids
+            a for a in normalized if a["group_id"] is not None and a["group_id"] not in current_group_ids
         ]
-        # Check if there are missing all assignments
         missing_all_assignment = [
-            a
-            for a in assignment_info
-            if "all_assignment" in a
-            and a["all_assignment"] not in current_all_assignment
+            a for a in normalized if a["group_id"] is None and a["odata_type"] not in current_all_assignment
         ]
         data = {"mobileAppAssignments": []}
 
-        if missing_assignment:
-            for assignment in missing_assignment:
-                # Assign the app to the group
-                if assignment.get("exclude") is True:
-                    odata_type = "#microsoft.graph.exclusionGroupAssignmentTarget"
-                else:
-                    odata_type = "#microsoft.graph.groupAssignmentTarget"
-                data["mobileAppAssignments"].append(
-                    {
-                        "@odata.type": "#microsoft.graph.mobileAppAssignment",
-                        "target": {
-                            "@odata.type": odata_type,
-                            "groupId": assignment["group_id"],
-                        },
-                        "intent": assignment["intent"],
-                        "settings": None,
-                    }
-                )
+        for a in missing_assignment:
+            data["mobileAppAssignments"].append(
+                {
+                    "@odata.type": "#microsoft.graph.mobileAppAssignment",
+                    "target": {
+                        "@odata.type": a["odata_type"],
+                        "groupId": a["group_id"],
+                    },
+                    "intent": a["intent"],
+                    "settings": None,
+                }
+            )
 
-        if missing_all_assignment:
-            for assignment in missing_all_assignment:
-                data["mobileAppAssignments"].append(
-                    {
-                        "@odata.type": "#microsoft.graph.mobileAppAssignment",
-                        "target": {
-                            "@odata.type": assignment["all_assignment"],
-                        },
-                        "intent": assignment["intent"],
-                        "settings": None,
-                    }
-                )
+        for a in missing_all_assignment:
+            data["mobileAppAssignments"].append(
+                {
+                    "@odata.type": "#microsoft.graph.mobileAppAssignment",
+                    "target": {
+                        "@odata.type": a["odata_type"],
+                    },
+                    "intent": a["intent"],
+                    "settings": None,
+                }
+            )
 
         for assignment in current_assignment["value"]:
             data["mobileAppAssignments"].append(
@@ -811,6 +804,114 @@ class IntuneUploaderBase(Processor):
                 json.dumps(data),
                 200,
             )
+
+    _ALL_ASSIGNMENT_MAP = {
+        "AllUsers": "#microsoft.graph.allLicensedUsersAssignmentTarget",
+        "AllDevices": "#microsoft.graph.allDevicesAssignmentTarget",
+    }
+
+    def _normalize_assignment_info(self, assignment_info):
+        """Normalize recipe-format assignment_info into (odata_type, group_id, intent) dicts."""
+        result = []
+        for a in assignment_info:
+            intent = a.get("intent", "").lower()
+            if "all_assignment" in a:
+                odata_type = self._ALL_ASSIGNMENT_MAP.get(
+                    a["all_assignment"], a["all_assignment"]
+                )
+                result.append({"odata_type": odata_type, "group_id": None, "intent": intent})
+            elif "group_id" in a:
+                if a.get("exclude"):
+                    odata_type = "#microsoft.graph.exclusionGroupAssignmentTarget"
+                else:
+                    odata_type = "#microsoft.graph.groupAssignmentTarget"
+                result.append({"odata_type": odata_type, "group_id": a["group_id"], "intent": intent})
+        return result
+
+    def _normalize_current_assignments(self, assignments):
+        result = []
+        for a in assignments:
+            target = a.get("target", {})
+            result.append({
+                "odata_type": target.get("@odata.type", ""),
+                "group_id": target.get("groupId"),
+                "intent": a.get("intent", "").lower(),
+            })
+        return result
+
+    _ODATA_TYPE_LABELS = {
+        "#microsoft.graph.allLicensedUsersAssignmentTarget": "AllUsers",
+        "#microsoft.graph.allDevicesAssignmentTarget": "AllDevices",
+        "#microsoft.graph.groupAssignmentTarget": "group",
+        "#microsoft.graph.exclusionGroupAssignmentTarget": "exclude",
+    }
+
+    def _assignment_label(self, a):
+        type_label = self._ODATA_TYPE_LABELS.get(a["odata_type"], a["odata_type"])
+        target = f":{a['group_id']}" if a["group_id"] else ""
+        return f"{a['intent']}({type_label}{target})"
+
+    def sync_app_assignments(self, assignment_info, diff: bool = False) -> None:
+        """Syncs app assignments to exactly match assignment_info via a full replace.
+
+        When diff=True, reads current assignments first and skips the POST if already
+        in sync, logging what would be added/removed. Default is False (unconditional
+        POST, no extra read).
+        """
+        for a in assignment_info:
+            if "exclude" not in a:
+                a["exclude"] = False
+
+        desired = self._normalize_assignment_info(assignment_info)
+        display_name = self.request.get("displayName", "")
+
+        if diff:
+            current_raw = self.makeapirequest(
+                f"{self.BASE_ENDPOINT}/{self.request['id']}/assignments",
+                self.token,
+            )
+            current = self._normalize_current_assignments(current_raw["value"])
+
+            def key(a):
+                return (a["odata_type"], a["group_id"] or "", a["intent"])
+
+            current_keys = {key(a): a for a in current}
+            desired_keys = {key(a): a for a in desired}
+
+            if current_keys == desired_keys:
+                self.output(f"{display_name} assignments already in sync, skipping.")
+                return
+
+            added = [self._assignment_label(a) for k, a in desired_keys.items() if k not in current_keys]
+            removed = [self._assignment_label(a) for k, a in current_keys.items() if k not in desired_keys]
+            parts = []
+            if added:
+                parts.append(f"added: {', '.join(added)}")
+            if removed:
+                parts.append(f"removed: {', '.join(removed)}")
+            self.output(f"{display_name} syncing assignments — {'; '.join(parts)}")
+
+        assignments = []
+        for a in desired:
+            target = {"@odata.type": a["odata_type"]}
+            if a["group_id"]:
+                target["groupId"] = a["group_id"]
+            assignments.append({
+                "@odata.type": "#microsoft.graph.mobileAppAssignment",
+                "target": target,
+                "intent": a["intent"],
+                "settings": None,
+            })
+
+        self.makeapirequestPost(
+            f"{self.BASE_ENDPOINT}/{self.request['id']}/assign",
+            self.token,
+            "",
+            json.dumps({"mobileAppAssignments": assignments}),
+            200,
+        )
+        if not diff:
+            self.output(f"{display_name} synced assignments")
 
 
 if __name__ == "__main__":

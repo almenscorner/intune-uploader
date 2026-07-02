@@ -147,6 +147,26 @@ class IntuneAppUploader(IntuneUploaderBase):
             "required": False,
             "description": "The scope tags to assign to the app. Provide as a list of strings the ids of the scope tags.",
         },
+        "sync_assignments": {
+            "required": False,
+            "description": "When True, syncs assignments to exactly match assignment_info even when the app version is already current. Performs a full idempotent replace rather than additive-only. Defaults to False.",
+            "default": False,
+        },
+        "sync_assignments_diff": {
+            "required": False,
+            "description": "When True, reads current assignments before syncing and logs what was added or removed. Also skips the POST when assignments are already in sync. Requires an extra API call per run. Defaults to False.",
+            "default": False,
+        },
+        "sync_metadata": {
+            "required": False,
+            "description": "When True, syncs description, displayName, and owner to match recipe inputs even when the app version is already current. Defaults to False.",
+            "default": False,
+        },
+        "publishing_state_timeout": {
+            "required": False,
+            "description": "Seconds to wait for the app's publishingState to become 'published' before assigning. Defaults to 60.",
+            "default": 60,
+        },
     }
     output_variables = {
         "name": {"description": "The name of the app that was uploaded."},
@@ -209,6 +229,10 @@ class IntuneAppUploader(IntuneUploaderBase):
         ignore_current_app = self.env.get("ignore_current_app")
         ignore_current_version = self.env.get("ignore_current_version")
         lob_app = self.env.get("lob_app")
+        sync_assignments = self.env.get("sync_assignments")
+        sync_assignments_diff = self.env.get("sync_assignments_diff")
+        sync_metadata = self.env.get("sync_metadata")
+        publishing_state_timeout = self.env.get("publishing_state_timeout") or 60
 
         # Get the access token
         self.token = self.obtain_accesstoken(
@@ -382,6 +406,39 @@ class IntuneAppUploader(IntuneUploaderBase):
                 self.output(
                     f'App {current_app_data["displayName"]} version {current_app_data["primaryBundleVersion"]} is up to date'
                 )
+                self.request = current_app_data
+
+                if sync_metadata:
+                    metadata_fields = {
+                        "description": (app_description, current_app_data.get("description")),
+                        "displayName": (app_displayname, current_app_data.get("displayName")),
+                        "owner": (app_owner, current_app_data.get("owner")),
+                    }
+                    metadata_patch = {}
+                    for fname, (desired, current) in metadata_fields.items():
+                        desired = desired or ""
+                        if desired != (current or ""):
+                            metadata_patch[fname] = desired
+                            self.output(
+                                f'{current_app_data["displayName"]}: {fname} "{current}" -> "{desired}"'
+                            )
+                        else:
+                            self.output(
+                                f'{current_app_data["displayName"]}: {fname} already up to date ("{current}")'
+                            )
+                    if metadata_patch:
+                        metadata_patch["@odata.type"] = current_app_data.get("@odata.type")
+                        self.makeapirequestPatch(
+                            f'{self.BASE_ENDPOINT}/{current_app_data["id"]}',
+                            self.token,
+                            "",
+                            json.dumps(metadata_patch),
+                            204,
+                        )
+
+                if sync_assignments:
+                    self.wait_for_publishing_state(timeout=publishing_state_timeout)
+                    self.sync_app_assignments(app_assignment_info or [], diff=sync_assignments_diff)
                 return
 
             # If the app does not exist
@@ -395,7 +452,9 @@ class IntuneAppUploader(IntuneUploaderBase):
                 )
 
         # Create the content version
-        content_version_url = f'{self.BASE_ENDPOINT}/{self.request["id"]}/{str(app_data_dict["@odata.type"]).replace("#", "")}/contentVersions'
+        app_odata_type_str = str(app_data_dict["@odata.type"]).replace("#", "")
+        self.app_odata_type_str = app_odata_type_str
+        content_version_url = f'{self.BASE_ENDPOINT}/{self.request["id"]}/{app_odata_type_str}/contentVersions'
         self.content_version_request = self.makeapirequestPost(
             content_version_url,
             self.token,
@@ -430,7 +489,7 @@ class IntuneAppUploader(IntuneUploaderBase):
         # Post the app file info
         data = json.dumps(content_file)
         self.content_file_request = self.makeapirequestPost(
-            f'{self.BASE_ENDPOINT}/{self.request["id"]}/microsoft.graph.macOSLobApp/contentVersions/{self.content_version_request["id"]}/files',
+            f'{self.BASE_ENDPOINT}/{self.request["id"]}/{app_odata_type_str}/contentVersions/{self.content_version_request["id"]}/files',
             self.token,
             "",
             data,
@@ -438,7 +497,7 @@ class IntuneAppUploader(IntuneUploaderBase):
         )
 
         # Get the content file upload URL
-        file_content_request_url = f'{self.BASE_ENDPOINT}/{self.request["id"]}/microsoft.graph.macOSLobApp/contentVersions/{self.content_version_request["id"]}/files/{self.content_file_request["id"]}'
+        file_content_request_url = f'{self.BASE_ENDPOINT}/{self.request["id"]}/{app_odata_type_str}/contentVersions/{self.content_version_request["id"]}/files/{self.content_file_request["id"]}'
         file_content_request = self.makeapirequest(
             file_content_request_url,
             self.token,
@@ -466,7 +525,7 @@ class IntuneAppUploader(IntuneUploaderBase):
         # Commit the file
         data = json.dumps({"fileEncryptionInfo": encryptionInfo})
         self.makeapirequestPost(
-            f'{self.BASE_ENDPOINT}/{self.request["id"]}/microsoft.graph.macOSLobApp/contentVersions/{self.content_version_request["id"]}/files/{self.content_file_request["id"]}/commit',
+            f'{self.BASE_ENDPOINT}/{self.request["id"]}/{app_odata_type_str}/contentVersions/{self.content_version_request["id"]}/files/{self.content_file_request["id"]}/commit',
             self.token,
             "",
             data,
@@ -478,7 +537,7 @@ class IntuneAppUploader(IntuneUploaderBase):
 
         # Patch the app to use the new content version
         data = {
-            "@odata.type": "#microsoft.graph.macOSLobApp",
+            "@odata.type": app_data_dict["@odata.type"],
             "committedContentVersion": self.content_version_request["id"],
         }
 
@@ -494,6 +553,7 @@ class IntuneAppUploader(IntuneUploaderBase):
             self.update_categories(app_categories, self.request.get("categories"))
 
         if app_assignment_info:
+            self.wait_for_publishing_state(timeout=publishing_state_timeout)
             for assignment in app_assignment_info:
                 if "exclude" not in assignment:
                     assignment["exclude"] = False

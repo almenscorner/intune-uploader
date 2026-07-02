@@ -19,7 +19,29 @@
     "type": "User",
     "user_view_type": "public",
     "site_admin": false,
-    "contributions": 87
+    "contributions": 90
+  },
+  {
+    "login": "discentem",
+    "id": 2560432,
+    "node_id": "MDQ6VXNlcjI1NjA0MzI=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/2560432?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/discentem",
+    "html_url": "https://github.com/discentem",
+    "followers_url": "https://api.github.com/users/discentem/followers",
+    "following_url": "https://api.github.com/users/discentem/following{/other_user}",
+    "gists_url": "https://api.github.com/users/discentem/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/discentem/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/discentem/subscriptions",
+    "organizations_url": "https://api.github.com/users/discentem/orgs",
+    "repos_url": "https://api.github.com/users/discentem/repos",
+    "events_url": "https://api.github.com/users/discentem/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/discentem/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false,
+    "contributions": 2
   },
   {
     "login": "gilburns",

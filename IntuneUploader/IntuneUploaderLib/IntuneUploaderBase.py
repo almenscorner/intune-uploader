@@ -879,7 +879,7 @@ class IntuneUploaderBase(Processor):
             desired_keys = {key(a): a for a in desired}
 
             if current_keys == desired_keys:
-                self.output(f"{display_name}: assignments already in sync, skipping.")
+                self.output(f"{display_name} assignments already in sync, skipping.")
                 return
 
             added = [self._assignment_label(a) for k, a in desired_keys.items() if k not in current_keys]
@@ -889,7 +889,7 @@ class IntuneUploaderBase(Processor):
                 parts.append(f"added: {', '.join(added)}")
             if removed:
                 parts.append(f"removed: {', '.join(removed)}")
-            self.output(f"{display_name}: syncing assignments — {'; '.join(parts)}")
+            self.output(f"{display_name} syncing assignments — {'; '.join(parts)}")
 
         assignments = []
         for a in desired:
@@ -911,7 +911,7 @@ class IntuneUploaderBase(Processor):
             200,
         )
         if not diff:
-            self.output(f"{display_name}: synced assignments")
+            self.output(f"{display_name} synced assignments")
 
 
 if __name__ == "__main__":

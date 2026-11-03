@@ -64,5 +64,27 @@
     "user_view_type": "public",
     "site_admin": false,
     "contributions": 1
+  },
+  {
+    "login": "mpanighetti",
+    "id": 351741613,
+    "node_id": "U_kgDOFPcmrQ",
+    "avatar_url": "https://avatars.githubusercontent.com/u/351741613?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/mpanighetti",
+    "html_url": "https://github.com/mpanighetti",
+    "followers_url": "https://api.github.com/users/mpanighetti/followers",
+    "following_url": "https://api.github.com/users/mpanighetti/following{/other_user}",
+    "gists_url": "https://api.github.com/users/mpanighetti/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/mpanighetti/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/mpanighetti/subscriptions",
+    "organizations_url": "https://api.github.com/users/mpanighetti/orgs",
+    "repos_url": "https://api.github.com/users/mpanighetti/repos",
+    "events_url": "https://api.github.com/users/mpanighetti/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/mpanighetti/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false,
+    "contributions": 1
   }
 ]

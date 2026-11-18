@@ -15,7 +15,7 @@ import os
 import time
 
 import requests
-from autopkglib import Processor, ProcessorError
+from autopkglib import APLooseVersion, Processor, ProcessorError
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
@@ -659,7 +659,7 @@ class IntuneUploaderBase(Processor):
                     if item.get("primaryBundleVersion")
                     else item.get("buildNumber")
                 )
-                if item_version < version:
+                if APLooseVersion(item_version) < APLooseVersion(version):
                     result = "update"
                     item["primaryBundleVersion"] = item_version
                     data = item
